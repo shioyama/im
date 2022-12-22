@@ -114,10 +114,6 @@ module Im::Loader::Config
       raise Im::Error, "#{namespace.inspect} is not a class or module object, should be"
     end
 
-    unless real_mod_name(namespace)
-      raise Im::Error, "root namespaces cannot be anonymous"
-    end
-
     abspath = File.expand_path(path)
     if dir?(abspath)
       raise_if_conflicting_directory(abspath)

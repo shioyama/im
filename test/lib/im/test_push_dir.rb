@@ -96,9 +96,4 @@ class TesPushDir < LoaderTest
     e = assert_raises(Im::Error) { loader.push_dir(".", namespace: :foo) }
     assert_equal ":foo is not a class or module object, should be", e.message
   end
-
-  test "raises if the namespace is anonymous" do
-    e = assert_raises(Im::Error) { loader.push_dir(".", namespace: Module.new) }
-    assert_equal "root namespaces cannot be anonymous", e.message
-  end
 end
