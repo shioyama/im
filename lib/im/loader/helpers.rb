@@ -101,27 +101,13 @@ module Im::Loader::Helpers
   # We need a way to strictly check in parent ignoring ancestors.
   #
   # @sig (Module, Symbol) -> String?
-  if method(:autoload?).arity == 1
-    private def strict_autoload_path(parent, cname)
-      parent.autoload?(cname) if cdef?(parent, cname)
-    end
-  else
-    private def strict_autoload_path(parent, cname)
-      parent.autoload?(cname, false)
-    end
+  private def strict_autoload_path(parent, cname)
+    parent.autoload?(cname, false)
   end
 
   # @sig (Module, Symbol) -> String
-  if Symbol.method_defined?(:name)
-    # Symbol#name was introduced in Ruby 3.0. It returns always the same
-    # frozen object, so we may save a few string allocations.
-    private def cpath(parent, cname)
-      Object == parent ? cname.name : "#{real_mod_name(parent)}::#{cname.name}"
-    end
-  else
-    private def cpath(parent, cname)
-      Object == parent ? cname.to_s : "#{real_mod_name(parent)}::#{cname}"
-    end
+  private def cpath(parent, cname)
+    Object == parent ? cname.name : "#{real_mod_name(parent)}::#{cname.name}"
   end
 
   # @sig (Module, Symbol) -> bool
