@@ -4,7 +4,7 @@ require "test_helper"
 
 class TestInflector < Minitest::Test
   def camelize(str)
-    Zeitwerk::Inflector.new.camelize(str, nil)
+    Im::Inflector.new.camelize(str, nil)
   end
 
   test "capitalizes the first letter" do
@@ -30,7 +30,7 @@ class TestInflector < Minitest::Test
       "mysql_adapter"  => "MySQLAdapter"
     }
 
-    inflector = Zeitwerk::Inflector.new
+    inflector = Im::Inflector.new
     inflector.inflect(inflections)
 
     inflections.each do |basename, cname|

@@ -9,14 +9,8 @@ class LoaderTest < Minitest::Test
     @loader = new_loader(setup: false)
   end
 
-  # We enable reloading in the reloaders of the test suite to have a robust
-  # cleanup of constants.
-  #
-  # There are gems that allow you to run tests in forked processes and you do
-  # not need to care, but JRuby does not support forking, and I prefer to be
-  # ready for the day in which Zeitwerk runs on JRuby.
   def new_loader(dirs: [], namespace: Object, enable_reloading: true, setup: true)
-    Zeitwerk::Loader.new.tap do |loader|
+    Im::Loader.new.tap do |loader|
       Array(dirs).each do |dir|
         loader.push_dir(dir, namespace: namespace)
       end
@@ -26,24 +20,24 @@ class LoaderTest < Minitest::Test
   end
 
   def reset_constants
-    Zeitwerk::Registry.loaders.each do |loader|
+    Im::Registry.loaders.each do |loader|
       begin
         loader.unload
-      rescue Zeitwerk::SetupRequired
+      rescue Im::SetupRequired
       end
     end
   end
 
   def reset_registry
-    Zeitwerk::Registry.loaders.clear
-    Zeitwerk::Registry.gem_loaders_by_root_file.clear
-    Zeitwerk::Registry.autoloads.clear
-    Zeitwerk::Registry.inceptions.clear
+    Im::Registry.loaders.clear
+    Im::Registry.gem_loaders_by_root_file.clear
+    Im::Registry.autoloads.clear
+    Im::Registry.inceptions.clear
   end
 
   def reset_explicit_namespace
-    Zeitwerk::ExplicitNamespace.send(:cpaths).clear
-    Zeitwerk::ExplicitNamespace.send(:tracer).disable
+    Im::ExplicitNamespace.send(:cpaths).clear
+    Im::ExplicitNamespace.send(:tracer).disable
   end
 
   def teardown

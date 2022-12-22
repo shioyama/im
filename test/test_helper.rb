@@ -13,7 +13,7 @@ require "support/loader_test"
 require "support/remove_const"
 require "support/on_teardown"
 
-require "zeitwerk"
+require "im"
 
 Minitest::Test.class_eval do
   extend TestMacro

@@ -6,7 +6,7 @@ class TestGemInflector < LoaderTest
   def with_setup
     files = [
       ["lib/my_gem.rb", <<-EOS],
-        loader = Zeitwerk::Loader.for_gem
+        loader = Im::Loader.for_gem
         loader.enable_reloading
         loader.setup
 

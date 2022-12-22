@@ -3,7 +3,7 @@
 require "test_helper"
 
 class TestRealModName < Minitest::Test
-  include Zeitwerk::RealModName
+  include Im::RealModName
 
   test "returns nil for anonymous classes and modules" do
     [Class.new, Module.new].each do |mod|
