@@ -13,8 +13,8 @@ module Im::Loader::EagerLoad
 
       log("eager load start") if logger
 
-      actual_roots.each do |root_dir, root_namespace|
-        actual_eager_load_dir(root_dir, root_namespace, force: force)
+      actual_roots.each do |root_dir|
+        actual_eager_load_dir(root_dir, Object, force: force)
       end
 
       autoloaded_dirs.each do |autoloaded_dir|
@@ -38,12 +38,12 @@ module Im::Loader::EagerLoad
 
     cnames = []
 
-    root_namespace = nil
+    found_root = false
     walk_up(abspath) do |dir|
       return if ignored_path?(dir)
       return if eager_load_exclusions.member?(dir)
 
-      break if root_namespace = roots[dir]
+      break if found_root = root_dirs.include?(dir)
 
       unless collapse?(dir)
         basename = File.basename(dir)
@@ -51,11 +51,11 @@ module Im::Loader::EagerLoad
       end
     end
 
-    raise Im::Error.new("I do not manage #{abspath}") unless root_namespace
+    raise Im::Error.new("I do not manage #{abspath}") unless found_root
 
     return if @eager_loaded
 
-    namespace = root_namespace
+    namespace = Object
     cnames.reverse_each do |cname|
       # Can happen if there are no Ruby files. This is not an error condition,
       # the directory is actually managed. Could have Ruby files later.
@@ -81,24 +81,13 @@ module Im::Loader::EagerLoad
     mod_name = real_mod_name(mod)
     return unless mod_name
 
-    actual_roots.each do |root_dir, root_namespace|
+    actual_roots.each do |root_dir|
       if mod.equal?(Object)
         # A shortcircuiting test depends on the invocation of this method.
         # Please keep them in sync if refactored.
-        actual_eager_load_dir(root_dir, root_namespace)
-      elsif root_namespace.equal?(Object)
-        eager_load_child_namespace(mod, mod_name, root_dir, root_namespace)
+        actual_eager_load_dir(root_dir, Object)
       else
-        root_namespace_name = real_mod_name(root_namespace)
-        if root_namespace_name.start_with?(mod_name + "::")
-          actual_eager_load_dir(root_dir, root_namespace)
-        elsif mod_name == root_namespace_name
-          actual_eager_load_dir(root_dir, root_namespace)
-        elsif mod_name.start_with?(root_namespace_name + "::")
-          eager_load_child_namespace(mod, mod_name, root_dir, root_namespace)
-        else
-          # Unrelated constant hierarchies, do nothing.
-        end
+        eager_load_child_namespace(mod, mod_name, root_dir)
       end
     end
   end
@@ -121,13 +110,13 @@ module Im::Loader::EagerLoad
     basename = File.basename(abspath, ".rb")
     base_cname = inflector.camelize(basename, abspath).to_sym
 
-    root_namespace = nil
+    root_included = false
     cnames = []
 
     walk_up(File.dirname(abspath)) do |dir|
       raise Im::Error.new("#{abspath} is ignored") if ignored_path?(dir)
 
-      break if root_namespace = roots[dir]
+      break if root_included = root_dirs.include?(dir)
 
       unless collapse?(dir)
         basename = File.basename(dir)
@@ -135,9 +124,9 @@ module Im::Loader::EagerLoad
       end
     end
 
-    raise Im::Error.new("I do not manage #{abspath}") unless root_namespace
+    raise Im::Error.new("I do not manage #{abspath}") unless root_included
 
-    namespace = root_namespace
+    namespace = Object
     cnames.reverse_each do |cname|
       namespace = cget(namespace, cname)
     end
@@ -186,11 +175,8 @@ module Im::Loader::EagerLoad
   # strict namespace descendendant of `root_namespace`.
   #
   # @sig (Module, String, Module, Boolean) -> void
-  private def eager_load_child_namespace(child, child_name, root_dir, root_namespace)
+  private def eager_load_child_namespace(child, child_name, root_dir)
     suffix = child_name
-    unless root_namespace.equal?(Object)
-      suffix = suffix.delete_prefix(real_mod_name(root_namespace) + "::")
-    end
 
     # These directories are at the same namespace level, there may be more if
     # we find collapsed ones. As we scan, we look for matches for the first

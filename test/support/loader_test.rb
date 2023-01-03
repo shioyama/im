@@ -9,11 +9,9 @@ class LoaderTest < Minitest::Test
     @loader = new_loader(setup: false)
   end
 
-  def new_loader(dirs: [], namespace: Object, enable_reloading: true, setup: true)
+  def new_loader(dirs: [], enable_reloading: true, setup: true)
     Im::Loader.new.tap do |loader|
-      Array(dirs).each do |dir|
-        loader.push_dir(dir, namespace: namespace)
-      end
+      Array(dirs).each { |dir| loader.push_dir(dir) }
       loader.enable_reloading if enable_reloading
       loader.setup            if setup
     end
@@ -73,12 +71,12 @@ class LoaderTest < Minitest::Test
     dirs.each { |dir| $LOAD_PATH.delete(dir) }
   end
 
-  def with_setup(files = [], dirs: nil, namespace: Object, load_path: nil, rm: true)
+  def with_setup(files = [], dirs: nil, load_path: nil, rm: true)
     with_files(files, rm: rm) do
       dirs ||= files.map do |file|
         file[0] =~ %r{\A(rd\d+)/} ? $1 : "."
       end.uniq
-      dirs.each { |dir| loader.push_dir(dir, namespace: namespace) }
+      dirs.each { |dir| loader.push_dir(dir) }
 
       files.each do |file|
         if File.basename(file[0]) == "ignored.rb"

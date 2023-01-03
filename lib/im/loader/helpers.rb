@@ -29,7 +29,7 @@ module Im::Loader::Helpers
       next if ignored_path?(abspath)
 
       if dir?(abspath)
-        next if roots.key?(abspath)
+        next if root_dirs.include?(abspath)
         next if !has_at_least_one_ruby_file?(abspath)
       else
         next unless ruby?(abspath)

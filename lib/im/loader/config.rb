@@ -13,21 +13,20 @@ module Im::Loader::Config
   # @sig #call | #debug | nil
   attr_accessor :logger
 
-  # Absolute paths of the root directories, mapped to their respective root namespaces:
+  # Absolute paths of the root directories, as a set:
   #
-  #   "/Users/fxn/blog/app/channels" => Object,
-  #   "/Users/fxn/blog/app/adapters" => ActiveJob::QueueAdapters,
-  #   ...
-  #
-  # Stored in a hash to preserve order, easily handle duplicates, and have a
-  # fast lookup by directory.
+  #   #<Set: {
+  #     "/Users/fxn/blog/app/channels",
+  #     "/Users/fxn/blog/app/adapters",
+  #     ...
+  #   }>
   #
   # This is a private collection maintained by the loader. The public
   # interface for it is `push_dir` and `dirs`.
   #
-  # @sig Hash[String, Module]
-  attr_reader :roots
-  internal :roots
+  # @sig Array[String]
+  attr_reader :root_dirs
+  internal :root_dirs
 
   # Absolute paths of files, directories, or glob patterns to be totally
   # ignored.
@@ -88,7 +87,7 @@ module Im::Loader::Config
     @logger                 = self.class.default_logger
     @tag                    = SecureRandom.hex(3)
     @initialized_at         = Time.now
-    @roots                  = {}
+    @root_dirs              = Set.new
     @ignored_glob_patterns  = Set.new
     @ignored_paths          = Set.new
     @collapse_glob_patterns = Set.new
@@ -108,16 +107,11 @@ module Im::Loader::Config
   #
   # @raise [Im::Error]
   # @sig (String | Pathname, Module) -> void
-  def push_dir(path, namespace: Object)
-    # Note that Class < Module.
-    unless namespace.is_a?(Module)
-      raise Im::Error, "#{namespace.inspect} is not a class or module object, should be"
-    end
-
+  def push_dir(path)
     abspath = File.expand_path(path)
     if dir?(abspath)
       raise_if_conflicting_directory(abspath)
-      roots[abspath] = namespace
+      root_dirs << abspath
     else
       raise Im::Error, "the root directory #{abspath} does not exist"
     end
@@ -140,29 +134,17 @@ module Im::Loader::Config
     @tag = tag.to_s
   end
 
-  # If `namespaces` is falsey (default), returns an array with the absolute
-  # paths of the root directories as strings. If truthy, returns a hash table
-  # instead. Keys are the absolute paths of the root directories as strings,
-  # values are their corresponding namespaces, class or module objects.
-  #
+  # Rturns an array with the absolute paths of the root directories as strings.
   # If `ignored` is falsey (default), ignored root directories are filtered out.
   #
   # These are read-only collections, please add to them with `push_dir`.
   #
   # @sig () -> Array[String] | Hash[String, Module]
-  def dirs(namespaces: false, ignored: false)
-    if namespaces
-      if ignored || ignored_paths.empty?
-        roots.clone
-      else
-        roots.reject { |root_dir, _namespace| ignored_path?(root_dir) }
-      end
+  def dirs(ignored: false)
+    if ignored || ignored_paths.empty?
+      root_dirs
     else
-      if ignored || ignored_paths.empty?
-        roots.keys
-      else
-        roots.keys.reject { |root_dir| ignored_path?(root_dir) }
-      end
+      root_dirs.reject { |root_dir| ignored_path?(root_dir) }
     end.freeze
   end
 
@@ -296,7 +278,7 @@ module Im::Loader::Config
 
     walk_up(abspath) do |abspath|
       return true  if ignored_path?(abspath)
-      return false if roots.key?(abspath)
+      return false if root_dir?(abspath)
     end
 
     false
@@ -309,14 +291,14 @@ module Im::Loader::Config
 
   # @sig () -> Array[String]
   private def actual_roots
-    roots.reject do |root_dir, _root_namespace|
+    root_dirs.reject do |root_dir|
       !dir?(root_dir) || ignored_path?(root_dir)
     end
   end
 
   # @sig (String) -> bool
   private def root_dir?(dir)
-    roots.key?(dir)
+    root_dirs.include?(dir)
   end
 
   # @sig (String) -> bool
@@ -326,7 +308,7 @@ module Im::Loader::Config
 
     walk_up(abspath) do |abspath|
       return true  if eager_load_exclusions.member?(abspath)
-      return false if roots.key?(abspath)
+      return false if root_dir?(abspath)
     end
 
     false

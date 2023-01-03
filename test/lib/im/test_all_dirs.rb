@@ -21,7 +21,7 @@ class TestAllDirs < LoaderTest
       new_loader(dirs: "loaderA")
       new_loader(dirs: "loaderB")
 
-      assert_equal ["#{Dir.pwd}/loaderA", "#{Dir.pwd}/loaderB"], Im::Loader.all_dirs
+      assert_equal ["#{Dir.pwd}/loaderA", "#{Dir.pwd}/loaderB"].to_set, Im::Loader.all_dirs
     end
   end
 end

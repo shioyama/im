@@ -3,8 +3,6 @@
 require "test_helper"
 
 class TestAutovivification < LoaderTest
-  module Namespace; end
-
   test "autoloads a simple constant in an autovivified module (Object)" do
     files = [["admin/x.rb", "Admin::X = true"]]
     with_setup(files) do
@@ -13,25 +11,10 @@ class TestAutovivification < LoaderTest
     end
   end
 
-  test "autoloads a simple constant in an autovivified module (Namespace)" do
-    files = [["admin/x.rb", "#{Namespace}::Admin::X = true"]]
-    with_setup(files, namespace: Namespace) do
-      assert_kind_of Module, Namespace::Admin
-      assert Namespace::Admin::X
-    end
-  end
-
   test "autovivifies several levels in a row (Object)" do
     files = [["foo/bar/baz/woo.rb", "Foo::Bar::Baz::Woo = true"]]
     with_setup(files) do
       assert Foo::Bar::Baz::Woo
-    end
-  end
-
-  test "autovivifies several levels in a row (Namespace)" do
-    files = [["foo/bar/baz/woo.rb", "#{Namespace}::Foo::Bar::Baz::Woo = true"]]
-    with_setup(files, namespace: Namespace) do
-      assert Namespace::Foo::Bar::Baz::Woo
     end
   end
 
@@ -43,17 +26,6 @@ class TestAutovivification < LoaderTest
     with_setup(files) do
       assert Admin::Hotel
       assert Admin::HotelsController
-    end
-  end
-
-  test "autoloads several constants from the same namespace (Namespace)" do
-    files = [
-      ["rd1/admin/hotel.rb", "class #{Namespace}::Admin::Hotel; end"],
-      ["rd2/admin/hotels_controller.rb", "class #{Namespace}::Admin::HotelsController; end"]
-    ]
-    with_setup(files, namespace: Namespace) do
-      assert Namespace::Admin::Hotel
-      assert Namespace::Admin::HotelsController
     end
   end
 

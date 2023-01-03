@@ -3,8 +3,6 @@
 require "test_helper"
 
 class TestTopLevel < LoaderTest
-  module Namespace; end
-
   test "autoloads a simple constant in a top-level file (Object)" do
     files = [["x.rb", "X = true"]]
     with_setup(files) do
@@ -12,24 +10,10 @@ class TestTopLevel < LoaderTest
     end
   end
 
-  test "autoloads a simple constant in a top-level file (Namespace)" do
-    files = [["x.rb", "#{Namespace}::X = true"]]
-    with_setup(files, namespace: Namespace) do
-      assert Namespace::X
-    end
-  end
-
   test "autoloads a simple class in a top-level file (Object)" do
     files = [["user.rb", "class User; end"]]
     with_setup(files) do
       assert User
-    end
-  end
-
-  test "autoloads a simple class in a top-level file (Namespace)" do
-    files = [["user.rb", "class #{Namespace}::User; end"]]
-    with_setup(files, namespace: Namespace) do
-      assert Namespace::User
     end
   end
 

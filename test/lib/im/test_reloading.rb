@@ -4,8 +4,6 @@ require "test_helper"
 require "fileutils"
 
 class TestReloading < LoaderTest
-  module Namespace; end
-
   def silence_exceptions_in_threads
     original_report_on_exception = Thread.report_on_exception
     Thread.report_on_exception = false
@@ -59,40 +57,6 @@ class TestReloading < LoaderTest
       assert Z.object_id != z_object_id
 
       assert_equal 2, X
-    end
-  end
-
-  test "reloading works if the flag is set (Namespace)" do
-    files = [
-      ["x.rb", "#{Namespace}::X = 1"],         # top-level
-      ["y.rb", "module #{Namespace}::Y; end"], # explicit namespace
-      ["y/a.rb", "#{Namespace}::Y::A = 1"],
-      ["z/a.rb", "#{Namespace}::Z::A = 1"]     # implicit namespace
-    ]
-    with_setup(files, namespace: Namespace) do
-      assert_equal 1, Namespace::X
-      assert_equal 1, Namespace::Y::A
-      assert_equal 1, Namespace::Z::A
-
-      ns_object_id = Namespace.object_id
-      y_object_id  = Namespace::Y.object_id
-      z_object_id  = Namespace::Z.object_id
-
-      File.write("x.rb", "#{Namespace}::X = 2")
-      File.write("y/a.rb", "#{Namespace}::Y::A = 2")
-      File.write("z/a.rb", "#{Namespace}::Z::A = 2")
-
-      loader.reload
-
-      assert_equal 2, Namespace::X
-      assert_equal 2, Namespace::Y::A
-      assert_equal 2, Namespace::Z::A
-
-      assert Namespace.object_id    == ns_object_id
-      assert Namespace::Y.object_id != y_object_id
-      assert Namespace::Z.object_id != z_object_id
-
-      assert_equal 2, Namespace::X
     end
   end
 

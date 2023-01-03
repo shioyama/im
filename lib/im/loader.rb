@@ -116,8 +116,8 @@ module Im
       mutex.synchronize do
         break if @setup
 
-        actual_roots.each do |root_dir, root_namespace|
-          set_autoloads_in_dir(root_dir, root_namespace)
+        actual_roots.each do |root_dir|
+          set_autoloads_in_dir(root_dir, Object)
         end
 
         on_setup_callbacks.each(&:call)
@@ -319,7 +319,7 @@ module Im
       #
       # @sig () -> Array[String]
       def all_dirs
-        Registry.loaders.flat_map(&:dirs).freeze
+        Registry.loaders.map(&:dirs).inject(&:+).freeze
       end
     end
 
@@ -462,7 +462,7 @@ module Im
           next if loader == self
           next if loader.__ignores?(dir)
 
-          loader.__roots.each_key do |root_dir|
+          loader.__root_dirs.each do |root_dir|
             next if ignores?(root_dir)
 
             root_dir_slash = root_dir + "/"
