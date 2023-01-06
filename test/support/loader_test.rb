@@ -30,6 +30,7 @@ class LoaderTest < Minitest::Test
     Im::Registry.loaders.clear
     Im::Registry.gem_loaders_by_root_file.clear
     Im::Registry.autoloads.clear
+    Im::Registry.paths.clear
     Im::Registry.inceptions.clear
   end
 

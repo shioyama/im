@@ -326,19 +326,21 @@ module Im
     private # -------------------------------------------------------------------------------------
 
     # @sig (String, Module) -> void
-    def set_autoloads_in_dir(dir, parent)
+    def set_autoloads_in_dir(dir, parent, register_paths_only: false)
       ls(dir) do |basename, abspath|
         begin
           if ruby?(basename)
             basename.delete_suffix!(".rb")
             cname = inflector.camelize(basename, abspath).to_sym
-            autoload_file(parent, cname, abspath)
+            autoload_file(parent, cname, abspath) unless register_paths_only
+            Registry.register_path(self, abspath)
           else
             if collapse?(abspath)
-              set_autoloads_in_dir(abspath, parent)
+              set_autoloads_in_dir(abspath, parent, register_paths_only: register_paths_only)
             else
               cname = inflector.camelize(basename, abspath).to_sym
-              autoload_subdir(parent, cname, abspath)
+              autoload_subdir(parent, cname, abspath) unless register_paths_only
+              set_autoloads_in_dir(abspath, cname, register_paths_only: true)
             end
           end
         rescue ::NameError => error
@@ -411,6 +413,7 @@ module Im
     def promote_namespace_from_implicit_to_explicit(dir:, file:, parent:, cname:)
       autoloads.delete(dir)
       Registry.unregister_autoload(dir)
+      Registry.unregister_path(dir)
 
       log("earlier autoload for #{cpath(parent, cname)} discarded, it is actually an explicit namespace defined in #{file}") if logger
 

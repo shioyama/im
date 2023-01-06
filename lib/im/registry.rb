@@ -25,6 +25,10 @@ module Im
       # @sig Hash[String, Im::Loader]
       attr_reader :autoloads
 
+      # @private
+      # @sig Hash[String, Im::Loader]
+      attr_reader :paths
+
       # This hash table addresses an edge case in which an autoload is ignored.
       #
       # For example, let's suppose we want to autoload in a gem like this:
@@ -78,6 +82,7 @@ module Im
         loaders.delete(loader)
         gem_loaders_by_root_file.delete_if { |_, l| l == loader }
         autoloads.delete_if { |_, l| l == loader }
+        paths.delete_if { |_, l| l == loader }
         inceptions.delete_if { |_, (_, l)| l == loader }
       end
 
@@ -93,13 +98,25 @@ module Im
       # @private
       # @sig (Im::Loader, String) -> String
       def register_autoload(loader, abspath)
-        autoloads[abspath] = loader
+        paths[abspath] = autoloads[abspath] = loader
       end
 
       # @private
       # @sig (String) -> void
       def unregister_autoload(abspath)
         autoloads.delete(abspath)
+      end
+
+      # @private
+      # @sig (Im::Loader, String) -> String
+      def register_path(loader, abspath)
+        paths[abspath] = loader
+      end
+
+      # @private
+      # @sig (String) -> void
+      def unregister_path(abspath)
+        paths.delete(abspath)
       end
 
       # @private
@@ -119,7 +136,7 @@ module Im
       # @private
       # @sig (String) -> Im::Loader?
       def loader_for(path)
-        autoloads[path]
+        paths[path]
       end
 
       # @private
@@ -133,6 +150,7 @@ module Im
     @loaders                  = []
     @gem_loaders_by_root_file = {}
     @autoloads                = {}
+    @paths                    = {}
     @inceptions               = {}
   end
 end
