@@ -326,21 +326,21 @@ module Im
     private # -------------------------------------------------------------------------------------
 
     # @sig (String, Module) -> void
-    def set_autoloads_in_dir(dir, parent, register_paths_only: false)
+    def set_autoloads_in_dir(dir, parent)
       ls(dir) do |basename, abspath|
         begin
           if ruby?(basename)
             basename.delete_suffix!(".rb")
             cname = inflector.camelize(basename, abspath).to_sym
-            autoload_file(parent, cname, abspath) unless register_paths_only
+            autoload_file(parent, cname, abspath) if parent
             Registry.register_path(self, abspath)
           else
             if collapse?(abspath)
-              set_autoloads_in_dir(abspath, parent, register_paths_only: register_paths_only)
+              set_autoloads_in_dir(abspath, parent)
             else
               cname = inflector.camelize(basename, abspath).to_sym
-              autoload_subdir(parent, cname, abspath) unless register_paths_only
-              set_autoloads_in_dir(abspath, cname, register_paths_only: true)
+              autoload_subdir(parent, cname, abspath) if parent
+              set_autoloads_in_dir(abspath, nil)
             end
           end
         rescue ::NameError => error
