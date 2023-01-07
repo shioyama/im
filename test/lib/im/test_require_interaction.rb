@@ -14,7 +14,7 @@ class TestRequireInteraction < LoaderTest
 
   test "our decorated require returns true or false as expected" do
     on_teardown do
-      remove_const :User
+      remove_const :User, from: Object
       delete_loaded_feature "user.rb"
     end
 
@@ -29,7 +29,7 @@ class TestRequireInteraction < LoaderTest
 
   test "our decorated require returns true or false as expected (Pathname)" do
     on_teardown do
-      remove_const :User
+      remove_const :User, from: Object
       delete_loaded_feature "user.rb"
     end
 
@@ -46,7 +46,7 @@ class TestRequireInteraction < LoaderTest
   test "autoloading makes require idempotent even with a relative path" do
     files = [["user.rb", "class User; end"]]
     with_setup(files, load_path: ".") do
-      assert User
+      assert loader::User
       assert_not_required "user"
     end
   end
@@ -56,10 +56,10 @@ class TestRequireInteraction < LoaderTest
     with_setup(files, load_path: ".") do
       assert_required "user"
       loader.unload
-      assert !Object.const_defined?(:User, false)
+      assert !loader.const_defined?(:User, false)
 
       loader.setup
-      assert User
+      assert loader::User
     end
   end
 
@@ -67,12 +67,12 @@ class TestRequireInteraction < LoaderTest
     files = [["user.rb", "class User; end"]]
     with_setup(files, load_path: ".") do
       assert_required Pathname.new("user")
-      assert User
+      assert loader::User
       loader.unload
-      assert !Object.const_defined?(:User, false)
+      assert !loader.const_defined?(:User, false)
 
       loader.setup
-      assert User
+      assert loader::User
     end
   end
 
@@ -84,11 +84,11 @@ class TestRequireInteraction < LoaderTest
     with_setup(files, load_path: %w(rd1 rd2)) do
       assert_required "admin/user"
 
-      assert Admin::User
-      assert Admin::UsersController
+      assert loader::Admin::User
+      assert loader::Admin::UsersController
 
       loader.unload
-      assert !Object.const_defined?(:Admin)
+      assert !loader.const_defined?(:Admin)
     end
   end
 
@@ -96,7 +96,7 @@ class TestRequireInteraction < LoaderTest
     files = [["foo/bar/baz/zoo/woo.rb", "Foo::Bar::Baz::Zoo::Woo = 1"]]
     with_setup(files, load_path: ".") do
       assert_required "foo/bar/baz/zoo/woo"
-      assert loader.unloadable_cpath?("Foo::Bar::Baz::Zoo::Woo")
+      assert loader.unloadable_cpath?("#{loader}::Foo::Bar::Baz::Zoo::Woo")
     end
   end
 
@@ -108,8 +108,8 @@ class TestRequireInteraction < LoaderTest
     ]
     with_setup(files, load_path: ".") do
       assert_required "foo/bar/baz/zoo/woo"
-      assert loader.unloadable_cpath?("Foo::Bar::Baz::Zoo::Wadus")
-      assert loader.unloadable_cpath?("Foo::Bar::Baz::Zoo::Woo")
+      assert loader.unloadable_cpath?("#{loader}::Foo::Bar::Baz::Zoo::Wadus")
+      assert loader.unloadable_cpath?("#{loader}::Foo::Bar::Baz::Zoo::Woo")
     end
   end
 
@@ -120,8 +120,8 @@ class TestRequireInteraction < LoaderTest
     ]
     with_setup(files, load_path: ".") do
       assert_required "hotel/pricing"
-      assert Hotel::Pricing
-      assert Hotel::X
+      assert loader::Hotel::Pricing
+      assert loader::Hotel::X
     end
   end
 
@@ -133,7 +133,7 @@ class TestRequireInteraction < LoaderTest
         loader.enable_reloading
         loader.setup
 
-        module MyGem; end
+        module loader::MyGem; end
       EOS
       ["my_gem/foo.rb", "class MyGem::Foo; end"]
     ]
@@ -152,9 +152,9 @@ class TestRequireInteraction < LoaderTest
         loader.enable_reloading
         loader.setup
 
-        Hotel.name
+        loader::Hotel.name
 
-        class Hotel
+        class loader::Hotel
         end
       EOS
       ["hotel/pricing.rb", "class Hotel::Pricing; end"]
@@ -185,9 +185,9 @@ class TestRequireInteraction < LoaderTest
         loader.enable_reloading
         loader.setup
 
-        Hotel.name
+        loader::Hotel.name
 
-        class Hotel
+        class loader::Hotel
         end
       EOS
       ["hotel/pricing.rb", "class Hotel::Pricing; end"]

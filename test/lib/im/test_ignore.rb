@@ -23,8 +23,8 @@ class TestIgnore < LoaderTest
       loader.ignore(".")
       loader.setup
 
-      assert !Object.autoload?(:X)
-      assert_raises(NameError) { ::X }
+      assert !loader.autoload?(:X)
+      assert_raises(NameError) { loader::X }
     end
   end
 
@@ -36,9 +36,9 @@ class TestIgnore < LoaderTest
       loader.ignore(".")
       loader.setup
 
-      assert !Object.autoload?(:X)
-      assert_raises(NameError) { ::X }
-      assert Y
+      assert !loader.autoload?(:X)
+      assert_raises(NameError) { loader::X }
+      assert loader::Y
     end
   end
 
@@ -52,11 +52,11 @@ class TestIgnore < LoaderTest
       loader.ignore("y.rb")
       loader.setup
 
-      assert Object.autoload?(:X)
-      assert !Object.autoload?(:Y)
+      assert loader.autoload?(:X)
+      assert !loader.autoload?(:Y)
 
-      assert ::X
-      assert_raises(NameError) { ::Y }
+      assert loader::X
+      assert_raises(NameError) { loader::Y }
     end
   end
 
@@ -72,11 +72,11 @@ class TestIgnore < LoaderTest
       loader.ignore("m")
       loader.setup
 
-      assert Object.autoload?(:X)
-      assert !Object.autoload?(:M)
+      assert loader.autoload?(:X)
+      assert !loader.autoload?(:M)
 
-      assert ::X
-      assert_raises(NameError) { ::M }
+      assert loader::X
+      assert_raises(NameError) { loader::M }
     end
   end
 
@@ -91,8 +91,8 @@ class TestIgnore < LoaderTest
       loader.setup
       loader.eager_load
 
-      assert ::X
-      assert_raises(NameError) { ::Y }
+      assert loader::X
+      assert_raises(NameError) { loader::Y }
     end
   end
 
@@ -109,8 +109,8 @@ class TestIgnore < LoaderTest
       loader.setup
       loader.eager_load
 
-      assert ::X
-      assert_raises(NameError) { ::M }
+      assert loader::X
+      assert_raises(NameError) { loader::M }
     end
   end
 
@@ -138,8 +138,8 @@ class TestIgnore < LoaderTest
       loader.ignore("**/*_test.rb")
       loader.setup
 
-      assert Admin::User
-      assert_raises(NameError) { Admin::UserTest }
+      assert loader::Admin::User
+      assert_raises(NameError) { loader::Admin::UserTest }
     end
   end
 
@@ -153,16 +153,16 @@ class TestIgnore < LoaderTest
       loader.ignore("*_test.rb")
       loader.setup
 
-      assert User
-      assert_raises(NameError) { UserTest }
+      assert loader::User
+      assert_raises(NameError) { loader::UserTest }
 
       File.write("post.rb", "class Post; end")
       File.write("post_test.rb", "class PostTest < Minitest::Test; end")
 
       loader.reload
 
-      assert Post
-      assert_raises(NameError) { PostTest }
+      assert loader::Post
+      assert_raises(NameError) { loader::PostTest }
     end
   end
 

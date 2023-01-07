@@ -6,7 +6,7 @@ class TestNestedRootDirectories < LoaderTest
   test "nested root directories do not autovivify modules" do
     files = [["concerns/pricing.rb", "module Pricing; end"]]
     with_setup(files, dirs: %w(. concerns)) do
-      assert_raises(NameError) { Concerns }
+      assert_raises(NameError) { loader::Concerns }
     end
   end
 
@@ -17,8 +17,8 @@ class TestNestedRootDirectories < LoaderTest
       ["concerns.rb", "module Concerns; end"]
     ]
     with_setup(files, dirs: %w(. concerns)) do
-      assert Concerns
-      assert Hotel
+      assert loader::Concerns
+      assert loader::Hotel
     end
   end
 

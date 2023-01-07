@@ -13,35 +13,27 @@ class TestExceptions < LoaderTest
   end
 
   test "raises NameError if the expected constant is not defined" do
-    on_teardown { remove_const :TyPo }
-
     files = [["typo.rb", "TyPo = 1"]]
     with_setup(files) do
       typo_rb = File.expand_path("typo.rb")
-      error = assert_raises(Im::NameError) { Typo }
-      assert_error_message "expected file #{typo_rb} to define constant Typo, but didn't", error
+      error = assert_raises(Im::NameError) { loader::Typo }
+      assert_error_message "expected file #{typo_rb} to define constant #{loader}::Typo, but didn't", error
       assert_equal :Typo, error.name
     end
   end
 
   test "eager loading raises NameError if files do not define the expected constants" do
-    on_teardown do
-      remove_const :X # should be unnecessary, but $LOADED_FEATURES.reject! redefines it
-      remove_const :Y
-    end
-
     files = [["x.rb", "Y = 1"]]
     with_setup(files) do
       x_rb = File.expand_path("x.rb")
       error = assert_raises(Im::NameError) { loader.eager_load }
-      assert_error_message "expected file #{x_rb} to define constant X, but didn't", error
+      assert_error_message "expected file #{x_rb} to define constant #{loader}::X, but didn't", error
       assert_equal :X, error.name
     end
   end
 
   test "eager loading raises NameError if a namespace has not been loaded yet" do
     on_teardown do
-      remove_const :CLI
       delete_loaded_feature 'cli/x.rb'
     end
 
@@ -49,7 +41,7 @@ class TestExceptions < LoaderTest
     with_setup(files) do
       cli_x_rb = File.expand_path("cli/x.rb")
       error = assert_raises(Im::NameError) { loader.eager_load }
-      assert_error_message "expected file #{cli_x_rb} to define constant Cli::X, but didn't", error
+      assert_error_message "expected file #{cli_x_rb} to define constant #{loader}::Cli::X, but didn't", error
       assert_equal :X, error.name
     end
   end
@@ -57,7 +49,7 @@ class TestExceptions < LoaderTest
   test "raises if the file does" do
     files = [["raises.rb", "Raises = 1; raise 'foo'"]]
     with_setup(files, rm: false) do
-      assert_raises(RuntimeError, "foo") { Raises }
+      assert_raises(RuntimeError, "foo") { loader::Raises }
     end
   end
 

@@ -8,7 +8,7 @@ class TestForGem < LoaderTest
     $for_gem_test_loader.enable_reloading
     $for_gem_test_loader.setup
 
-    module MyGem
+    module $for_gem_test_loader::MyGem
     end
   EOS
 
@@ -17,11 +17,15 @@ class TestForGem < LoaderTest
       with_load_path("lib") do
         if rq
           assert require("my_gem")
-          assert MyGem
+          assert loader::MyGem
         end
         yield
       end
     end
+  end
+
+  def loader
+    Im::Registry.paths[$:.resolve_feature_path("my_gem")[1]]
   end
 
   test "sets things correctly" do
@@ -31,13 +35,13 @@ class TestForGem < LoaderTest
       ["lib/my_gem/foo/bar.rb", "MyGem::Foo::Bar = true"]
     ]
     with_my_gem(files) do
-      assert MyGem::Foo::Bar
+      assert loader::MyGem::Foo::Bar
 
-      $for_gem_test_loader.unload
-      assert !Object.const_defined?(:MyGem)
+      loader.unload
+      assert !loader.const_defined?(:MyGem)
 
-      $for_gem_test_loader.setup
-      assert MyGem::Foo::Bar
+      loader.setup
+      assert loader::MyGem::Foo::Bar
     end
   end
 
@@ -49,17 +53,17 @@ class TestForGem < LoaderTest
         $for_gem_test_zs.last.enable_reloading
         $for_gem_test_zs.last.setup
 
-        module MyGem
+        module $for_gem_test_zs.last::MyGem
         end
       EOS
     ]
 
     with_my_gem(files) do
-      $for_gem_test_zs.first.unload
-      assert !Object.const_defined?(:MyGem)
+      loader.unload
+      assert !loader.const_defined?(:MyGem)
 
-      $for_gem_test_zs.first.setup
-      assert MyGem
+      loader.setup
+      assert loader::MyGem
 
       assert_equal 2, $for_gem_test_zs.size
       assert_same $for_gem_test_zs.first, $for_gem_test_zs.last
@@ -68,13 +72,13 @@ class TestForGem < LoaderTest
 
   test "configures the gem inflector by default" do
     with_my_gem do
-      assert_instance_of Im::GemInflector, $for_gem_test_loader.inflector
+      assert_instance_of Im::GemInflector, loader.inflector
     end
   end
 
   test "configures the basename of the root file as loader tag" do
     with_my_gem do
-      assert_equal "my_gem", $for_gem_test_loader.tag
+      assert_equal "my_gem", loader.tag
     end
   end
 
@@ -114,7 +118,7 @@ class TestForGem < LoaderTest
       loader.enable_reloading
       loader.setup
 
-      module MyGem
+      module loader::MyGem
       end
     EOS
     with_my_gem(files, false) do
@@ -131,7 +135,7 @@ class TestForGem < LoaderTest
       loader.enable_reloading
       loader.setup
 
-      module MyGem
+      module loader::MyGem
       end
     EOS
     with_my_gem(files, false) do
@@ -161,7 +165,7 @@ class TestForGem < LoaderTest
       loader.enable_reloading
       loader.setup
 
-      module MyGem
+      module loader::MyGem
       end
     EOS
     with_my_gem(files, false) do
@@ -178,7 +182,7 @@ class TestForGem < LoaderTest
       loader.enable_reloading
       loader.setup
 
-      module MyGem
+      module loader::MyGem
       end
     EOS
     with_my_gem(files, false) do
@@ -195,7 +199,7 @@ class TestForGem < LoaderTest
       loader.enable_reloading
       loader.setup
 
-      module MyGem
+      module loader::MyGem
       end
     EOS
     with_my_gem(files, false) do
@@ -213,7 +217,7 @@ class TestForGem < LoaderTest
       loader.enable_reloading
       loader.setup
 
-      module MyGem
+      module loader::MyGem
       end
     EOS
     with_my_gem(files, false) do
@@ -233,7 +237,7 @@ class TestForGem < LoaderTest
       loader.enable_reloading
       loader.setup
 
-      module MyGem
+      module loader::MyGem
       end
     EOS
     with_my_gem(files, false) do

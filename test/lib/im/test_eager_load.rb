@@ -4,50 +4,28 @@ require "test_helper"
 require "fileutils"
 
 class TestEagerLoad < LoaderTest
-  test "eager loads independent files" do
-    loaders = [loader, new_loader(setup: false)]
-
-    files = [
-      ["lib0/app0.rb", "module App0; end"],
-      ["lib0/app0/foo.rb", "class App0::Foo; end"],
-      ["lib1/app1/foo.rb", "class App1::Foo; end"],
-      ["lib1/app1/foo/bar/baz.rb", "class App1::Foo::Bar::Baz; end"]
-    ]
-    with_files(files) do
-      loaders[0].push_dir("lib0")
-      loaders[0].setup
-
-      loaders[1].push_dir("lib1")
-      loaders[1].setup
-
-      Im::Loader.eager_load_all
-
-      assert required?(files)
-    end
-  end
-
   test "eager loads dependent loaders" do
-    loaders = [loader, new_loader(setup: false)]
+    $test_eager_load_loaders = loaders = [loader, new_loader(setup: false)]
 
     files = [
       ["lib0/app0.rb", <<-EOS],
         module App0
-          App1
+          $test_eager_load_loaders[1]::App1
         end
       EOS
       ["lib0/app0/foo.rb", <<-EOS],
         class App0::Foo
-          App1::Foo
+          $test_eager_load_loaders[1]::App1::Foo
         end
       EOS
       ["lib1/app1/foo.rb", <<-EOS],
         class App1::Foo
-          App0
+          $test_eager_load_loaders[0]::App0
         end
       EOS
       ["lib1/app1/foo/bar/baz.rb", <<-EOS]
         class App1::Foo::Bar::Baz
-          App0::Foo
+          $test_eager_load_loaders[0]::App0::Foo
         end
       EOS
     ]
@@ -75,8 +53,6 @@ class TestEagerLoad < LoaderTest
 
   test "eager loads gems" do
     on_teardown do
-      remove_const :MyGem
-
       delete_loaded_feature "my_gem.rb"
       delete_loaded_feature "my_gem/foo.rb"
       delete_loaded_feature "my_gem/foo/bar.rb"
@@ -88,7 +64,7 @@ class TestEagerLoad < LoaderTest
         loader = Im::Loader.for_gem
         loader.setup
 
-        class MyGem
+        class loader::MyGem
           Foo::Baz # autoloads fine
         end
 
@@ -110,7 +86,6 @@ class TestEagerLoad < LoaderTest
   [false, true].each do |enable_reloading|
     test "we can opt-out of entire root directories, and still autoload (enable_autoloading #{enable_reloading})" do
       on_teardown do
-        remove_const :Foo
         delete_loaded_feature "foo.rb"
       end
 
@@ -121,16 +96,13 @@ class TestEagerLoad < LoaderTest
         loader.eager_load
 
         assert !required?(files[0])
-        assert Foo
+        assert loader::Foo
       end
     end
 
     test "we can opt-out of sudirectories, and still autoload (enable_autoloading #{enable_reloading})" do
       on_teardown do
-        remove_const :Foo
         delete_loaded_feature "foo.rb"
-
-        remove_const :DbAdapters
         delete_loaded_feature "db_adapters/mysql_adapter.rb"
       end
 
@@ -148,16 +120,13 @@ class TestEagerLoad < LoaderTest
 
         assert !required?(files[0])
         assert required?(files[1])
-        assert DbAdapters::MysqlAdapter
+        assert loader::DbAdapters::MysqlAdapter
       end
     end
 
     test "we can opt-out of files, and still autoload (enable_autoloading #{enable_reloading})" do
       on_teardown do
-        remove_const :Foo
         delete_loaded_feature "foo.rb"
-
-        remove_const :Bar
         delete_loaded_feature "bar.rb"
       end
 
@@ -172,14 +141,12 @@ class TestEagerLoad < LoaderTest
 
         assert required?(files[0])
         assert !required?(files[1])
-        assert Bar
+        assert loader::Bar
       end
     end
 
     test "opt-ed out root directories sharing a namespace don't prevent autoload (enable_autoloading #{enable_reloading})" do
       on_teardown do
-        remove_const :Ns
-
         delete_loaded_feature "ns/foo.rb"
         delete_loaded_feature "ns/bar.rb"
       end
@@ -195,14 +162,12 @@ class TestEagerLoad < LoaderTest
 
         assert !required?(files[0])
         assert required?(files[1])
-        assert Ns::Foo
+        assert loader::Ns::Foo
       end
     end
 
     test "opt-ed out subdirectories don't prevent autoloading shared namespaces (enable_autoloading #{enable_reloading})" do
       on_teardown do
-        remove_const :Ns
-
         delete_loaded_feature "ns/foo.rb"
         delete_loaded_feature "ns/bar.rb"
       end
@@ -218,33 +183,14 @@ class TestEagerLoad < LoaderTest
 
         assert !required?(files[0])
         assert required?(files[1])
-        assert Ns::Foo
+        assert loader::Ns::Foo
       end
     end
   end
 
-  test "eager loading skips shadowed files" do
-    files = [
-      ["a/foo.rb", "Foo = 1"],
-      ["b/foo.rb", "Foo = 1"]
-    ]
-    with_files(files) do
-      la = new_loader(dirs: "a")
-      lb = new_loader(dirs: "b")
-
-      la.eager_load
-      lb.eager_load
-
-      assert required?(files[0])
-      assert !required?(files[1])
-    end
-  end
-
   test "eager loading skips files that would map to already loaded constants" do
-    on_teardown { remove_const :X }
-
     files = [["x.rb", "X = 1"]]
-    ::X = 1
+    loader::X = 1
     with_setup(files) do
       loader.eager_load
       assert !required?(files[0])
@@ -259,7 +205,7 @@ class TestEagerLoad < LoaderTest
       loader.setup
       loader.eager_load
 
-      assert_nil Object.autoload?(:X)
+      assert_nil loader.autoload?(:X)
     end
   end
 
@@ -285,7 +231,7 @@ class TestEagerLoad < LoaderTest
       loader.eager_load(force: true)
 
       assert required?(files)
-      assert DbAdapters::MysqlAdapter
+      assert loader::DbAdapters::MysqlAdapter
     end
   end
 
@@ -357,7 +303,7 @@ class TestEagerLoad < LoaderTest
         loader.eager_load
       end
 
-      assert_equal ["X", "Y"], loaded
+      assert_equal ["#{loader}::X", "#{loader}::Y"], loaded
     end
   end
 

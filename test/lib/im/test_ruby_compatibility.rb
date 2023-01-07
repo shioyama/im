@@ -25,7 +25,7 @@ class TestRubyCompatibility < LoaderTest
           end
         end
 
-        assert X
+        assert loader::X
         assert $trc_require_has_been_called
       ensure
         Kernel.module_eval do
@@ -42,11 +42,13 @@ class TestRubyCompatibility < LoaderTest
   # the context of the require call and is correct because an autoload does not
   # define the constant by itself, it has to be a side-effect.
   test "within a file triggered by an autoload, the constant being autoloaded is not defined" do
-    files = [["x.rb", "$const_defined_for_X = Object.const_defined?(:X); X = 1"]]
+    files = [["x.rb", "$const_defined_for_X = $trc_loader.const_defined?(:X); X = 1"]]
+    $trc_loader = loader
+
     with_setup(files) do
-      $const_defined_for_X = Object.const_defined?(:X)
+      $const_defined_for_X = loader.const_defined?(:X)
       assert $const_defined_for_X
-      assert X
+      assert loader::X
       assert !$const_defined_for_X
     end
   end
@@ -79,7 +81,6 @@ class TestRubyCompatibility < LoaderTest
   test "TracePoint emits :class events" do
     on_teardown do
       @tp.disable
-      remove_const :C, from: self.class
     end
 
     called = false
@@ -87,7 +88,7 @@ class TestRubyCompatibility < LoaderTest
     @tp = TracePoint.new(:class) { called = true }
     @tp.enable
 
-    class C; end
+    class loader::C; end
     assert called
   end
 
@@ -97,7 +98,7 @@ class TestRubyCompatibility < LoaderTest
   test "you can set autoloads on directories" do
     files = ["admin/users_controller.rb", "class UsersController; end"]
     with_setup(files) do
-      assert_equal "#{Dir.pwd}/admin", Object.autoload?(:Admin)
+      assert_equal "#{Dir.pwd}/admin", loader.autoload?(:Admin)
     end
   end
 
@@ -108,7 +109,7 @@ class TestRubyCompatibility < LoaderTest
       loader.push_dir(".")
       loader.setup
 
-      assert Admin
+      assert loader::Admin
       assert !$LOADED_FEATURES.include?(File.expand_path("admin"))
     end
   end
@@ -164,9 +165,9 @@ class TestRubyCompatibility < LoaderTest
     files = [["x.rb", "$remove_const_does_not_trigger_autoload = false; X = 1"]]
     with_files(files) do
       $remove_const_does_not_trigger_autoload = true
-      Object.autoload(:X, File.expand_path("x.rb"))
+      loader.autoload(:X, File.expand_path("x.rb"))
 
-      remove_const :X
+      loader.send(:remove_const, :X)
       assert $remove_const_does_not_trigger_autoload
     end
   end
@@ -197,20 +198,21 @@ class TestRubyCompatibility < LoaderTest
   test "autoload configuration can be deleted with remove_const" do
     files = [["x.rb", "X = true"]]
     with_files(files) do
-      Object.autoload(:X, File.expand_path("x.rb"))
+      loader.autoload(:X, File.expand_path("x.rb"))
 
-      assert Object.autoload?(:X)
-      remove_const :X
-      assert !Object.autoload?(:X)
+      assert loader.autoload?(:X)
+      remove_const :X, from: loader
+      assert !loader.autoload?(:X)
     end
   end
 
   # This edge case justifies the need for the inceptions collection in the
   # registry. See Im::Registry.inceptions.
   test "an autoload on yourself is ignored" do
+    $trc_loader = loader
     files = [["foo.rb", <<-EOS]]
-      Object.autoload(:Foo, __FILE__)
-      $trc_inception = !Object.autoload?(:Foo)
+      $trc_loader.autoload(:Foo, __FILE__)
+      $trc_inception = !$trc_loader.autoload?(:Foo)
       Foo = 1
     EOS
     with_files(files) do
@@ -228,18 +230,21 @@ class TestRubyCompatibility < LoaderTest
 
   # Same as above, adding some depth.
   test "an autoload on a file being required at some point up in the call chain is also ignored" do
+    on_teardown { $trc_loader = nil }
+
     files = [
       ["foo.rb", <<-EOS],
         require 'bar'
         Foo = 1
       EOS
-     ["bar.rb", <<-EOS]
-       Bar = true
-       Object.autoload(:Foo, File.expand_path('foo.rb'))
-       $trc_inception = !Object.autoload?(:Foo)
-     EOS
+      ["bar.rb", <<-EOS]
+        Bar = true
+        $trc_loader.autoload(:Foo, File.expand_path('foo.rb'))
+        $trc_inception = !Object.autoload?(:Foo)
+      EOS
     ]
     with_files(files) do
+      $trc_loader = loader
       loader.push_dir(".")
       loader.setup
 
@@ -332,9 +337,9 @@ class TestRubyCompatibility < LoaderTest
       end
     EOS
     with_setup(files) do
-      t = Thread.new { M }
+      t = Thread.new { loader::M }
       $ensure_M_is_autoloaded_by_the_thread.pop()
-      assert M.works?
+      assert loader::M.works?
       t.join
     end
   end

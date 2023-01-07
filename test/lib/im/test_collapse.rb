@@ -7,14 +7,14 @@ class TestCollapse < LoaderTest
   test "top-level directories can be collapsed" do
     files = [["collapsed/bar/x.rb", "Bar::X = true"]]
     with_setup(files) do
-      assert Bar::X
+      assert loader::Bar::X
     end
   end
 
   test "collapsed directories are ignored as namespaces" do
     files = [["foo/collapsed/x.rb", "Foo::X = true"]]
     with_setup(files) do
-      assert Foo::X
+      assert loader::Foo::X
     end
   end
 
@@ -24,8 +24,8 @@ class TestCollapse < LoaderTest
       ["collapsed/x.rb", "X = true"]
     ]
     with_setup(files) do
-      assert Collapsed
-      assert X
+      assert loader::Collapsed
+      assert loader::X
     end
   end
 
@@ -39,7 +39,7 @@ class TestCollapse < LoaderTest
       loader.collapse("foo")
       loader.setup
 
-      assert Foo::X
+      assert loader::Foo::X
     end
   end
 
@@ -53,7 +53,7 @@ class TestCollapse < LoaderTest
       loader.collapse(["foo", "foo/bar"])
       loader.setup
 
-      assert Foo::X
+      assert loader::Foo::X
     end
   end
 
@@ -67,8 +67,8 @@ class TestCollapse < LoaderTest
       loader.collapse("foo/bar", "zoo/bar")
       loader.setup
 
-      assert Foo::X
-      assert Zoo::X
+      assert loader::Foo::X
+      assert loader::Zoo::X
     end
   end
 
@@ -82,8 +82,8 @@ class TestCollapse < LoaderTest
       loader.collapse(["foo/bar", "zoo/bar"])
       loader.setup
 
-      assert Foo::X
-      assert Zoo::X
+      assert loader::Foo::X
+      assert loader::Zoo::X
     end
   end
 
@@ -97,8 +97,8 @@ class TestCollapse < LoaderTest
       loader.collapse("*/bar")
       loader.setup
 
-      assert Foo::X
-      assert Zoo::X
+      assert loader::Foo::X
+      assert loader::Zoo::X
     end
   end
 
@@ -109,16 +109,16 @@ class TestCollapse < LoaderTest
       loader.collapse("*/bar")
       loader.setup
 
-      assert Foo::X
-      assert_raises(NameError) { Zoo::X }
+      assert loader::Foo::X
+      assert_raises(NameError) { loader::Zoo::X }
 
       FileUtils.mkdir_p("zoo/bar")
       File.write("zoo/bar/x.rb", "Zoo::X = true")
 
       loader.reload
 
-      assert Foo::X
-      assert Zoo::X
+      assert loader::Foo::X
+      assert loader::Zoo::X
     end
   end
 

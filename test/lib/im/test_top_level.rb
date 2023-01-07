@@ -6,14 +6,14 @@ class TestTopLevel < LoaderTest
   test "autoloads a simple constant in a top-level file (Object)" do
     files = [["x.rb", "X = true"]]
     with_setup(files) do
-      assert X
+      assert loader::X
     end
   end
 
   test "autoloads a simple class in a top-level file (Object)" do
     files = [["user.rb", "class User; end"]]
     with_setup(files) do
-      assert User
+      assert loader::User
     end
   end
 
@@ -23,7 +23,7 @@ class TestTopLevel < LoaderTest
       ["rd2/users_controller.rb", "class UsersController; User; end"]
     ]
     with_setup(files) do
-      assert UsersController
+      assert loader::UsersController
     end
   end
 
@@ -33,7 +33,7 @@ class TestTopLevel < LoaderTest
       ["rd2/user.rb", "User = :decorator"],
     ]
     with_setup(files) do
-      assert_equal :model, User
+      assert_equal :model, loader::User
     end
   end
 

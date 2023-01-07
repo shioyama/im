@@ -6,11 +6,11 @@ class TestGemInflector < LoaderTest
   def with_setup
     files = [
       ["lib/my_gem.rb", <<-EOS],
-        loader = Im::Loader.for_gem
-        loader.enable_reloading
-        loader.setup
+        $gem_inflector_test_loader = Im::Loader.for_gem
+        $gem_inflector_test_loader.enable_reloading
+        $gem_inflector_test_loader.setup
 
-        module MyGem
+        module $gem_inflector_test_loader::MyGem
         end
       EOS
       ["lib/my_gem/foo.rb", "MyGem::Foo = true"],
@@ -26,14 +26,14 @@ class TestGemInflector < LoaderTest
   end
 
   test "the constant for my_gem/version.rb is inflected as VERSION" do
-    with_setup { assert_equal "1.0.0", MyGem::VERSION }
+    with_setup { assert_equal "1.0.0", $gem_inflector_test_loader::MyGem::VERSION }
   end
 
   test "other possible version.rb are inflected normally" do
-    with_setup { assert MyGem::Ns::Version }
+    with_setup { assert $gem_inflector_test_loader::MyGem::Ns::Version }
   end
 
   test "works as expected for other files" do
-    with_setup { assert MyGem::Foo }
+    with_setup { assert $gem_inflector_test_loader::MyGem::Foo }
   end
 end

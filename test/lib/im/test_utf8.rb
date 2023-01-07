@@ -10,40 +10,38 @@ class TestUTF8 < LoaderTest
     test "autoloads in a project whose root directories have accented letters" do
       files = [["líb/x.rb", "X = true"]]
       with_setup(files, dirs: ["líb"]) do
-        assert X
+        assert loader::X
       end
     end
 
     test "autoloads constants that have accented letters in the middle" do
       files = [["màxim.rb", "Màxim = 10_000"]]
       with_setup(files) do
-        assert Màxim
+        assert loader::Màxim
       end
     end
 
-    if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.6')
-      test "autoloads constants that start with a Greek letter" do
-        files = [["ω.rb", "Ω = true"]]
-        with_setup(files) do
-          assert Ω
-        end
+    test "autoloads constants that start with a Greek letter" do
+      files = [["ω.rb", "Ω = true"]]
+      with_setup(files) do
+        assert loader::Ω
       end
+    end
 
-      test "autoloads implicit namespaces that start with a Greek letter" do
-        files = [["ω/à.rb", "Ω::À = true"]]
-        with_setup(files) do
-          assert Ω::À
-        end
+    test "autoloads implicit namespaces that start with a Greek letter" do
+      files = [["ω/à.rb", "Ω::À = true"]]
+      with_setup(files) do
+        assert loader::Ω::À
       end
+    end
 
-      test "autoloads explicit namespaces that start with a Greek letter" do
-        files = [
-          ["ω.rb", "module Ω; end"],
-          ["ω/à.rb", "Ω::À = true"]
-        ]
-        with_setup(files) do
-          assert Ω::À
-        end
+    test "autoloads explicit namespaces that start with a Greek letter" do
+      files = [
+        ["ω.rb", "module Ω; end"],
+        ["ω/à.rb", "Ω::À = true"]
+      ]
+      with_setup(files) do
+        assert loader::Ω::À
       end
     end
   end

@@ -9,14 +9,14 @@ class TestUnload < LoaderTest
       ["admin/root.rb", "class Admin::Root; end"]
     ]
     with_setup(files) do
-      assert User
-      assert Admin::Root
-      admin = Admin
+      assert loader::User
+      assert loader::Admin::Root
+      admin = loader::Admin
 
       loader.unload
 
-      assert !Object.const_defined?(:User)
-      assert !Object.const_defined?(:Admin)
+      assert !loader.const_defined?(:User)
+      assert !loader.const_defined?(:Admin)
       assert !admin.const_defined?(:Root)
     end
   end
@@ -30,9 +30,9 @@ class TestUnload < LoaderTest
       end
     RUBY
     with_setup(files) do
-      assert X
+      assert loader::X
       loader.unload
-      assert !Object.const_defined?(:X)
+      assert !loader.const_defined?(:X)
     end
   end
 
@@ -40,9 +40,9 @@ class TestUnload < LoaderTest
     files = [["x.rb", "X = true"]]
     with_setup(files) do
       # This does not autolaod, see the compatibility test.
-      assert Object.const_defined?(:X)
+      assert loader.const_defined?(:X)
       loader.unload
-      assert !Object.const_defined?(:X)
+      assert !loader.const_defined?(:X)
     end
   end
 
@@ -54,8 +54,8 @@ class TestUnload < LoaderTest
       ["rd2/user.rb", "class User; end"]
     ]
     with_setup(files) do
-      assert User
-      assert Api::V1::UsersController
+      assert loader::User
+      assert loader::Api::V1::UsersController
 
       assert !loader.autoloads.empty?
       assert !loader.autoloaded_dirs.empty?
@@ -74,32 +74,30 @@ class TestUnload < LoaderTest
   test "unload does not assume autoloaded constants are still there" do
     files = [["x.rb", "X = true"]]
     with_setup(files) do
-      assert X
-      assert remove_const(:X) # user removed the constant by hand
+      assert loader::X
+      assert loader.send(:remove_const, :X) # user removed the constant by hand
       loader.unload # should not raise
     end
   end
 
   test "already existing namespaces are not reset" do
     on_teardown do
-      remove_const :ActiveStorage
       delete_loaded_feature "active_storage.rb"
     end
 
     files = [
-      ["lib/active_storage.rb", "module ActiveStorage; end"],
       ["app/models/active_storage/blob.rb", "class ActiveStorage::Blob; end"]
     ]
     with_files(files) do
       with_load_path("lib") do
-        require "active_storage"
+        loader::ActiveStorage = Module.new
 
         loader.push_dir("app/models")
         loader.setup
 
-        assert ActiveStorage::Blob
+        assert loader::ActiveStorage::Blob
         loader.unload
-        assert ActiveStorage
+        assert loader::ActiveStorage
       end
     end
   end
@@ -111,14 +109,14 @@ class TestUnload < LoaderTest
     ]
     with_files(files) do
       la = new_loader(dirs: "a")
-      assert Im::ExplicitNamespace.send(:cpaths)["M"] == la
+      assert Im::ExplicitNamespace.send(:cpaths)["#{la}::M"] == la
 
       lb = new_loader(dirs: "b")
-      assert Im::ExplicitNamespace.send(:cpaths)["X"] == lb
+      assert Im::ExplicitNamespace.send(:cpaths)["#{lb}::X"] == lb
 
       la.unload
-      assert_nil Im::ExplicitNamespace.send(:cpaths)["M"]
-      assert Im::ExplicitNamespace.send(:cpaths)["X"] == lb
+      assert_nil Im::ExplicitNamespace.send(:cpaths)["#{la}::M"]
+      assert Im::ExplicitNamespace.send(:cpaths)["#{lb}::X"] == lb
     end
   end
 
@@ -139,14 +137,10 @@ class TestUnload < LoaderTest
   end
 
   test "unload clears state even if the autoload failed and the exception was rescued" do
-    on_teardown do
-      remove_const :X_IS_NOT_DEFINED
-    end
-
     files = [["x.rb", "X_IS_NOT_DEFINED = true"]]
     with_setup(files) do
       begin
-        X
+        loader::X
       rescue Im::NameError
         pass # precondition holds
       else
@@ -155,7 +149,7 @@ class TestUnload < LoaderTest
 
       loader.unload
 
-      assert !Object.constants.include?(:X)
+      assert !loader.constants.include?(:X)
       assert !required?(files)
     end
   end

@@ -36,12 +36,12 @@ class TestReloading < LoaderTest
       ["z/a.rb", "Z::A = 1"]     # implicit namespace
     ]
     with_setup(files) do
-      assert_equal 1, X
-      assert_equal 1, Y::A
-      assert_equal 1, Z::A
+      assert_equal 1, loader::X
+      assert_equal 1, loader::Y::A
+      assert_equal 1, loader::Z::A
 
-      y_object_id = Y.object_id
-      z_object_id = Z.object_id
+      y_object_id = loader::Y.object_id
+      z_object_id = loader::Z.object_id
 
       File.write("x.rb", "X = 2")
       File.write("y/a.rb", "Y::A = 2")
@@ -49,14 +49,14 @@ class TestReloading < LoaderTest
 
       loader.reload
 
-      assert_equal 2, X
-      assert_equal 2, Y::A
-      assert_equal 2, Z::A
+      assert_equal 2, loader::X
+      assert_equal 2, loader::Y::A
+      assert_equal 2, loader::Z::A
 
-      assert Y.object_id != y_object_id
-      assert Z.object_id != z_object_id
+      assert loader::Y.object_id != y_object_id
+      assert loader::Z.object_id != z_object_id
 
-      assert_equal 2, X
+      assert_equal 2, loader::X
     end
   end
 
@@ -71,14 +71,9 @@ class TestReloading < LoaderTest
 
   test "if reloading is disabled, autoloading metadata shrinks while autoloading (performance test)" do
     on_teardown do
-      remove_const :X
       delete_loaded_feature "x.rb"
-
-      remove_const :Y
       delete_loaded_feature "y.rb"
       delete_loaded_feature "y/a.rb"
-
-      remove_const :Z
       delete_loaded_feature "z/a.rb"
     end
 
@@ -93,9 +88,9 @@ class TestReloading < LoaderTest
 
       assert !loader.autoloads.empty?
 
-      assert_equal 1, X
-      assert_equal 1, Y::A
-      assert_equal 1, Z::A
+      assert_equal 1, loader::X
+      assert_equal 1, loader::Y::A
+      assert_equal 1, loader::Z::A
 
       assert loader.autoloads.empty?
       assert loader.to_unload.empty?
@@ -104,14 +99,9 @@ class TestReloading < LoaderTest
 
   test "if reloading is disabled, autoloading metadata shrinks while eager loading (performance test)" do
     on_teardown do
-      remove_const :X
       delete_loaded_feature "x.rb"
-
-      remove_const :Y
       delete_loaded_feature "y.rb"
       delete_loaded_feature "y/a.rb"
-
-      remove_const :Z
       delete_loaded_feature "z/a.rb"
     end
 
@@ -138,13 +128,13 @@ class TestReloading < LoaderTest
   test "reloading supports deleted root directories" do
     files = [["rd1/x.rb", "X = 1"], ["rd2/y.rb", "Y = 1"]]
     with_setup(files) do
-      assert X
-      assert Y
+      assert loader::X
+      assert loader::Y
 
       FileUtils.rm_rf("rd2")
       loader.reload
 
-      assert X
+      assert loader::X
     end
   end
 
@@ -163,31 +153,27 @@ class TestReloading < LoaderTest
   end
 
   test "reload recovers from name errors (w/o on_unload callbacks)" do
-    on_teardown { remove_const :Y }
-
     files = [["x.rb", "Y = :typo"]]
     with_setup(files) do
-      assert_raises(Im::NameError) { X }
+      assert_raises(Im::NameError) { loader::X }
 
       loader.reload
       File.write("x.rb", "X = true")
 
-      assert X
+      assert loader::X
     end
   end
 
   test "reload recovers from name errors (w/ on_unload callbacks)" do
-    on_teardown { remove_const :Y }
-
     files = [["x.rb", "Y = :typo"]]
     with_setup(files) do
       loader.on_unload {}
-      assert_raises(Im::NameError) { X }
+      assert_raises(Im::NameError) { loader::X }
 
       loader.reload
       File.write("x.rb", "X = true")
 
-      assert X
+      assert loader::X
     end
   end
 

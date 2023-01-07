@@ -4,7 +4,7 @@ class TestEagerLoadNamespaceWithObjectRootNamespace < LoaderTest
   test "eager loads everything" do
     files = [["x.rb", "X = 1"], ["m/x.rb", "M::X = 1"]]
     with_setup(files) do
-      loader.eager_load_namespace(Object)
+      loader.eager_load_namespace(loader)
 
       assert required?(files)
     end
@@ -20,7 +20,7 @@ class TestEagerLoadNamespaceWithObjectRootNamespace < LoaderTest
       end
 
       begin
-        loader.eager_load_namespace(Object)
+        loader.eager_load_namespace(loader)
       rescue
         flunk
       else
@@ -46,7 +46,7 @@ class TestEagerLoadNamespaceWithObjectRootNamespace < LoaderTest
       ["rd2/m/y.rb", "M::Y = 1"]
     ]
     with_setup(files) do
-      loader.eager_load_namespace(Object)
+      loader.eager_load_namespace(loader)
 
       assert required?(files)
     end
@@ -59,7 +59,7 @@ class TestEagerLoadNamespaceWithObjectRootNamespace < LoaderTest
       ["rd2/m/y.rb", "M::Y = 1"]
     ]
     with_setup(files) do
-      loader.eager_load_namespace(M)
+      loader.eager_load_namespace(loader::M)
       assert required?(files[0])
       assert !required?(files[1])
       assert required?(files[2])
@@ -74,7 +74,7 @@ class TestEagerLoadNamespaceWithObjectRootNamespace < LoaderTest
       ["nested/m/y.rb", "M::Y = 1"]
     ]
     with_setup(files, dirs: %w(. nested)) do
-      loader.eager_load_namespace(Object)
+      loader.eager_load_namespace(loader)
 
       assert required?(files)
     end
@@ -83,7 +83,7 @@ class TestEagerLoadNamespaceWithObjectRootNamespace < LoaderTest
   test "eager loads a managed namespace" do
     files = [["x.rb", "X = 1"], ["m/x.rb", "M::X = 1"]]
     with_setup(files) do
-      loader.eager_load_namespace(M)
+      loader.eager_load_namespace(loader::M)
 
       assert !required?(files[0])
       assert required?(files[1])
@@ -102,7 +102,7 @@ class TestEagerLoadNamespaceWithObjectRootNamespace < LoaderTest
   test "does not eager load ignored files" do
     files = [["x.rb", "X = 1"], ["ignored.rb", "IGNORED"]]
     with_setup(files) do
-      loader.eager_load_namespace(Object)
+      loader.eager_load_namespace(loader)
 
       assert required?(files[0])
       assert !required?(files[1])
@@ -112,7 +112,7 @@ class TestEagerLoadNamespaceWithObjectRootNamespace < LoaderTest
   test "does not eager load shadowed files" do
     files = [["rd1/x.rb", "X = 1"], ["rd2/x.rb", "X = 1"]]
     with_setup(files) do
-      loader.eager_load_namespace(Object)
+      loader.eager_load_namespace(loader)
 
       assert required?(files[0])
       assert !required?(files[1])
@@ -123,7 +123,7 @@ class TestEagerLoadNamespaceWithObjectRootNamespace < LoaderTest
     files = [["rd1/a.rb", "A = 1"], ["rd2/b.rb", "B = 1"]]
     with_setup(files) do
       loader.do_not_eager_load("rd1")
-      loader.eager_load_namespace(Object)
+      loader.eager_load_namespace(loader)
 
       assert !required?(files[0])
       assert required?(files[1])
@@ -134,7 +134,7 @@ class TestEagerLoadNamespaceWithObjectRootNamespace < LoaderTest
     files = [["rd1/m/a.rb", "M::A = 1"], ["rd2/m/b.rb", "M::B = 1"]]
     with_setup(files) do
       loader.do_not_eager_load("rd1/m")
-      loader.eager_load_namespace(Object)
+      loader.eager_load_namespace(loader)
 
       assert !required?(files[0])
       assert required?(files[1])
@@ -145,7 +145,7 @@ class TestEagerLoadNamespaceWithObjectRootNamespace < LoaderTest
     files = [["rd1/m/a.rb", "M::A = 1"], ["rd2/m/b.rb", "M::B = 1"]]
     with_setup(files) do
       loader.do_not_eager_load("rd1/m")
-      loader.eager_load_namespace(M)
+      loader.eager_load_namespace(loader::M)
 
       assert !required?(files[0])
       assert required?(files[1])
@@ -156,7 +156,7 @@ class TestEagerLoadNamespaceWithObjectRootNamespace < LoaderTest
     files = [["rd1/m/n/a.rb", "M::N::A = 1"], ["rd2/m/n/b.rb", "M::N::B = 1"]]
     with_setup(files) do
       loader.do_not_eager_load("rd1/m")
-      loader.eager_load_namespace(M::N)
+      loader.eager_load_namespace(loader::M::N)
 
       assert !required?(files[0])
       assert required?(files[1])
@@ -169,7 +169,8 @@ class TestEagerLoadNamespaceWithObjectRootNamespace < LoaderTest
       loader.push_dir("a")
       loader.setup
 
-      new_loader(dirs: "b").eager_load_namespace(M)
+      loader_b = new_loader(dirs: "b")
+      loader_b.eager_load_namespace(loader_b::M)
 
       assert !required?(files[0])
       assert required?(files[1])

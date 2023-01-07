@@ -19,7 +19,7 @@ class TestPrivateConstants < LoaderTest
       end
     EOS2
     with_setup(files) do
-      assert_equal :X, C.x
+      assert_equal :X, loader::C.x
     end
   end
 
@@ -31,8 +31,8 @@ class TestPrivateConstants < LoaderTest
       end
     RUBY
     with_setup(files) do
-      assert_raises(NameError) { M::X }
-      assert_equal :X, M.module_eval("X")
+      assert_raises(NameError) { loader::M::X }
+      assert_equal :X, loader::M.module_eval("X")
     end
   end
 
@@ -53,12 +53,12 @@ class TestPrivateConstants < LoaderTest
       end
     EOS2
     with_setup(files) do
-      assert_equal 0, C.x
+      assert_equal 0, loader::C.x
 
       loader.reload
       $test_reload_private_constants = 1
 
-      assert_equal 1, C.x
+      assert_equal 1, loader::C.x
     end
   end
 end

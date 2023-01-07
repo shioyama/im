@@ -19,15 +19,15 @@ class TestUnloadableCpath < LoaderTest
       ["z.rb", "Z = true"]
     ]
     with_setup(files) do
-      assert M::X
+      assert loader::M::X
 
-      assert_equal %w(M M::X), loader.unloadable_cpaths
+      assert_equal ["#{loader}::M", "#{loader}::M::X"], loader.unloadable_cpaths
 
-      assert loader.unloadable_cpath?("M")
-      assert loader.unloadable_cpath?("M::X")
+      assert loader.unloadable_cpath?("#{loader}::M")
+      assert loader.unloadable_cpath?("#{loader}::M::X")
 
-      assert !loader.unloadable_cpath?("M::Y")
-      assert !loader.unloadable_cpath?("Z")
+      assert !loader.unloadable_cpath?("#{loader}::M::Y")
+      assert !loader.unloadable_cpath?("#{loader}::Z")
     end
   end
 
@@ -40,18 +40,15 @@ class TestUnloadableCpath < LoaderTest
       end
     RUBY
     with_setup(files) do
-      assert M::C
-      assert loader.unloadable_cpath?("M::C")
+      assert loader::M::C
+      assert loader.unloadable_cpath?("#{loader}::M::C")
     end
   end
 
   test "a loader that loaded some stuff has nothing to unload if reloading is disabled" do
     on_teardown do
-      remove_const :M
       delete_loaded_feature "m/x.rb"
       delete_loaded_feature "m/y.rb"
-
-      remove_const :Z
       delete_loaded_feature "z.rb"
     end
 
@@ -63,9 +60,9 @@ class TestUnloadableCpath < LoaderTest
     with_files(files) do
       loader = new_loader(dirs: ".", enable_reloading: false)
 
-      assert M::X
-      assert M::Y
-      assert Z
+      assert loader::M::X
+      assert loader::M::Y
+      assert loader::Z
 
       assert_empty loader.unloadable_cpaths
       assert loader.to_unload.empty?

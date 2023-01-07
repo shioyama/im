@@ -9,9 +9,9 @@ class TestExplicitNamespace < LoaderTest
       ["hotel/pricing.rb", "class Hotel::Pricing; end"]
     ]
     with_setup(files) do
-      assert_kind_of Class, Hotel
-      assert Hotel::X
-      assert Hotel::Pricing
+      assert_kind_of Class, loader::Hotel
+      assert loader::Hotel::X
+      assert loader::Hotel::Pricing
     end
   end
 
@@ -27,21 +27,7 @@ class TestExplicitNamespace < LoaderTest
       ["hotel/pricing.rb", "class Hotel::Pricing; end"]
     ]
     with_setup(files) do
-      assert Hotel::Pricing
-    end
-  end
-
-  test "explicit namespaces managed by different instances" do
-    files = [
-      ["a/m.rb", "module M; end"], ["a/m/n.rb", "M::N = true"],
-      ["b/x.rb", "module X; end"], ["b/x/y.rb", "X::Y = true"],
-    ]
-    with_files(files) do
-      new_loader(dirs: "a")
-      new_loader(dirs: "b")
-
-      assert M::N
-      assert X::Y
+      assert loader::Hotel::Pricing
     end
   end
 
@@ -53,9 +39,9 @@ class TestExplicitNamespace < LoaderTest
       ["b/x.rb", "B::X = :B"]
     ]
     with_setup(files) do
-      assert_kind_of Class, A
-      assert_kind_of Class, B
-      assert_equal :B, B::X
+      assert_kind_of Class, loader::A
+      assert_kind_of Class, loader::B
+      assert_equal :B, loader::B::X
     end
   end
 
@@ -67,9 +53,9 @@ class TestExplicitNamespace < LoaderTest
       ["b/x.rb", "B::X = :B"]
     ]
     with_setup(files) do
-      assert_kind_of Class, A
-      assert_kind_of Class, B
-      assert_equal :B, B::X
+      assert_kind_of Class, loader::A
+      assert_kind_of Class, loader::B
+      assert_equal :B, loader::B::X
     end
   end
 
@@ -81,9 +67,9 @@ class TestExplicitNamespace < LoaderTest
       ["b/x.rb", "B::X = :B"]
     ]
     with_setup(files) do
-      assert_kind_of Class, A
-      assert_kind_of Class, B
-      assert_equal :B, B::X
+      assert_kind_of Class, loader::A
+      assert_kind_of Class, loader::B
+      assert_equal :B, loader::B::X
     end
   end
 
@@ -119,7 +105,7 @@ class TestExplicitNamespace < LoaderTest
     files = [["x.rb", "X = true"]]
     with_setup(files) do
       assert !tracer.enabled?
-      assert X
+      assert loader::X
       assert !tracer.enabled?
     end
   end
@@ -128,7 +114,7 @@ class TestExplicitNamespace < LoaderTest
     files = [["foo/bar.rb", "module Foo::Bar; end"]]
     with_setup(files) do
       assert !tracer.enabled?
-      assert Foo::Bar
+      assert loader::Foo::Bar
       assert !tracer.enabled?
     end
   end
@@ -140,29 +126,9 @@ class TestExplicitNamespace < LoaderTest
     ]
     with_setup(files) do
       assert tracer.enabled?
-      assert Hotel
+      assert loader::Hotel
       assert !tracer.enabled?
-      assert Hotel::Pricing
-      assert !tracer.enabled?
-    end
-  end
-
-  test "the tracer is enabled until everything is loaded" do
-    files = [
-      ["a/m.rb", "module M; end"], ["a/m/n.rb", "M::N = true"],
-      ["b/x.rb", "module X; end"], ["b/x/y.rb", "X::Y = true"],
-    ]
-    with_files(files) do
-      new_loader(dirs: "a")
-      assert tracer.enabled?
-
-      new_loader(dirs: "b")
-      assert tracer.enabled?
-
-      assert M
-      assert tracer.enabled?
-
-      assert X
+      assert loader::Hotel::Pricing
       assert !tracer.enabled?
     end
   end
@@ -185,7 +151,7 @@ class TestExplicitNamespace < LoaderTest
     ]
     with_setup(files) do
       assert tracer.enabled?
-      assert_equal 1, Hotel.x
+      assert_equal 1, loader::Hotel.x
       assert tracer.enabled?
     end
   end
@@ -203,7 +169,7 @@ class TestExplicitNamespace < LoaderTest
       ["m/x.rb", "M::X = true"]
     ]
     with_setup(files) do
-      assert M::X
+      assert loader::M::X
     end
   end
 end

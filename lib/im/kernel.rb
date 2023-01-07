@@ -10,11 +10,22 @@ module Kernel
 
   # @sig (String) -> true | false
   def require(path)
-    if loader = Im::Registry.loader_for(path)
-      if path.end_with?(".rb")
-        required = im_original_require(path)
-        loader.on_file_autoloaded(path) if required
-        required
+    filetype, feature_path = $:.resolve_feature_path(path)
+
+    if (loader = Im::Registry.loader_for(path)) ||
+        ((loader = Im::Registry.loader_for(feature_path)) && (path = feature_path))
+      if :rb == filetype
+        if loaded = !$LOADED_FEATURES.include?(feature_path)
+          $LOADED_FEATURES << feature_path
+          begin
+            load path, loader
+          rescue => e
+            $LOADED_FEATURES.delete(feature_path)
+            raise e
+          end
+          loader.on_file_autoloaded(path)
+        end
+        loaded
       else
         loader.on_dir_autoloaded(path)
         true

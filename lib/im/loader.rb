@@ -3,7 +3,7 @@
 require "set"
 
 module Im
-  class Loader
+  class Loader < Module
     require_relative "loader/helpers"
     require_relative "loader/callbacks"
     require_relative "loader/config"
@@ -116,9 +116,7 @@ module Im
       mutex.synchronize do
         break if @setup
 
-        actual_roots.each do |root_dir|
-          set_autoloads_in_dir(root_dir, Object)
-        end
+        actual_roots.each { |root_dir| set_autoloads_in_dir(root_dir) }
 
         on_setup_callbacks.each(&:call)
 
@@ -326,7 +324,7 @@ module Im
     private # -------------------------------------------------------------------------------------
 
     # @sig (String, Module) -> void
-    def set_autoloads_in_dir(dir, parent)
+    def set_autoloads_in_dir(dir, parent = self)
       ls(dir) do |basename, abspath|
         begin
           if ruby?(basename)
@@ -367,6 +365,7 @@ module Im
       if autoload_path = autoload_path_set_by_me_for?(parent, cname)
         cpath = cpath(parent, cname)
         register_explicit_namespace(cpath) if ruby?(autoload_path)
+
         # We do not need to issue another autoload, the existing one is enough
         # no matter if it is for a file or a directory. Just remember the
         # subdirectory has to be visited if the namespace is used.

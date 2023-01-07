@@ -14,7 +14,7 @@ module Im::Loader::EagerLoad
       log("eager load start") if logger
 
       actual_roots.each do |root_dir|
-        actual_eager_load_dir(root_dir, Object, force: force)
+        actual_eager_load_dir(root_dir, self, force: force)
       end
 
       autoloaded_dirs.each do |autoloaded_dir|
@@ -55,7 +55,7 @@ module Im::Loader::EagerLoad
 
     return if @eager_loaded
 
-    namespace = Object
+    namespace = self
     cnames.reverse_each do |cname|
       # Can happen if there are no Ruby files. This is not an error condition,
       # the directory is actually managed. Could have Ruby files later.
@@ -79,13 +79,12 @@ module Im::Loader::EagerLoad
     return if @eager_loaded
 
     mod_name = real_mod_name(mod)
-    return unless mod_name
 
     actual_roots.each do |root_dir|
-      if mod.equal?(Object)
+      if mod.equal?(self)
         # A shortcircuiting test depends on the invocation of this method.
         # Please keep them in sync if refactored.
-        actual_eager_load_dir(root_dir, Object)
+        actual_eager_load_dir(root_dir, self)
       else
         eager_load_child_namespace(mod, mod_name, root_dir)
       end
@@ -126,7 +125,7 @@ module Im::Loader::EagerLoad
 
     raise Im::Error.new("I do not manage #{abspath}") unless root_included
 
-    namespace = Object
+    namespace = self
     cnames.reverse_each do |cname|
       namespace = cget(namespace, cname)
     end
@@ -177,6 +176,7 @@ module Im::Loader::EagerLoad
   # @sig (Module, String, Module, Boolean) -> void
   private def eager_load_child_namespace(child, child_name, root_dir)
     suffix = child_name
+    suffix = suffix.delete_prefix("#{self}::")
 
     # These directories are at the same namespace level, there may be more if
     # we find collapsed ones. As we scan, we look for matches for the first

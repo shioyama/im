@@ -12,7 +12,7 @@ class TestAncestors < LoaderTest
       ["c.rb", "class C < B; end"]
     ]
     with_setup(files) do
-      assert C::X
+      assert loader::C::X
     end
   end
 
@@ -24,8 +24,8 @@ class TestAncestors < LoaderTest
       ["c.rb", "class C < B; end"]
     ]
     with_setup(files) do
-      assert_equal :A, A::X
-      assert_equal :B, C::X
+      assert_equal :A, loader::A::X
+      assert_equal :B, loader::C::X
     end
   end
 
@@ -37,7 +37,7 @@ class TestAncestors < LoaderTest
       ["container_module/child_class.rb", "class ContainerModule::ChildClass; end"]
     ]
     with_setup(files) do
-      assert TestClass::ChildClass
+      assert loader::TestClass::ChildClass
     end
   end
 end

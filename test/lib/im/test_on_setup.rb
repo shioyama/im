@@ -42,7 +42,7 @@ class TestOnSetup < LoaderTest
     with_files(files) do
       loader.push_dir(".")
       loader.on_setup do
-        assert X
+        assert loader::X
       end
       loader.setup
     end

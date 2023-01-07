@@ -19,7 +19,7 @@ class TestOnUnload < LoaderTest
       loader.on_unload("X") { x << 1 }
       loader.on_unload("X") { x << 2 }
 
-      assert X
+      assert loader::X
       loader.reload
 
       assert_equal [1, 2], x
@@ -30,7 +30,7 @@ class TestOnUnload < LoaderTest
     with_setup([["x.rb", "X = 1"]]) do
       args = []; loader.on_unload("X") { |*a| args = a }
 
-      assert X
+      assert loader::X
       loader.reload
 
       assert_equal 1, args[0]
@@ -41,9 +41,9 @@ class TestOnUnload < LoaderTest
   test "on_unload for cpaths is called before the constant is removed" do
     with_setup([["x.rb", "X = 1"]]) do
       defined_X = false
-      loader.on_unload("X") { defined_X = Object.const_defined?(:X) }
+      loader.on_unload("X") { defined_X = loader.const_defined?(:X) }
 
-      assert X
+      assert loader::X
       loader.reload
 
       assert defined_X
@@ -59,7 +59,7 @@ class TestOnUnload < LoaderTest
       on_unload_for_Y = false
       loader.on_unload("Y") { on_unload_for_Y = true }
 
-      assert X
+      assert loader::X
       loader.reload
 
       assert !on_unload_for_Y
@@ -71,8 +71,8 @@ class TestOnUnload < LoaderTest
       on_unload_for_X = false
       loader.on_unload("X") { on_unload_for_X = true }
 
-      assert X
-      remove_const :X
+      assert loader::X
+      loader.send(:remove_const, :X)
       loader.reload
 
       assert !on_unload_for_X
@@ -80,13 +80,11 @@ class TestOnUnload < LoaderTest
   end
 
   test "on_unload on cpaths is resilient to failed autoloads" do
-    on_teardown { remove_const :Y }
-
     with_setup([["x.rb", "Y = 1"]]) do
       on_unload_for_X = false
       loader.on_unload("X") { on_unload_for_X = true }
 
-      assert_raises(Im::NameError) { X }
+      assert_raises(Im::NameError) { loader::X }
       loader.reload
 
       assert !on_unload_for_X
@@ -94,13 +92,11 @@ class TestOnUnload < LoaderTest
   end
 
   test "on_unload on cpaths does not trigger a failed autoload twice" do
-    on_teardown { remove_const :Y }
-
     $failed_autoloads = 0
     with_setup([["x.rb", "$failed_autoloads += 1; Y = 1"]]) do
       loader.on_unload("X") {}
 
-      assert_raises(Im::NameError) { X }
+      assert_raises(Im::NameError) { loader::X }
       loader.reload
 
       assert_equal 1, $failed_autoloads
@@ -111,11 +107,11 @@ class TestOnUnload < LoaderTest
     with_setup([["x.rb", "X = 1"]]) do
       args = []; loader.on_unload { |*a| args << a }
 
-      assert X
+      assert loader::X
       loader.reload
 
       assert_equal 1, args.length
-      assert_equal "X", args[0][0]
+      assert_equal "#{loader}::X", args[0][0]
       assert_equal 1, args[0][1]
       assert_abspath "x.rb", args[0][2]
     end
@@ -124,9 +120,9 @@ class TestOnUnload < LoaderTest
   test "on_unload for :ANY is called before the constant is removed" do
     with_setup([["x.rb", "X = 1"]]) do
       defined_X = false
-      loader.on_unload { defined_X = Object.const_defined?(:X) }
+      loader.on_unload { defined_X = loader.const_defined?(:X) }
 
-      assert X
+      assert loader::X
       loader.reload
 
       assert defined_X
@@ -139,7 +135,7 @@ class TestOnUnload < LoaderTest
       loader.on_unload { x << 1 }
       loader.on_unload { x << 2 }
 
-      assert X
+      assert loader::X
       loader.reload
 
       assert_equal [1, 2], x
@@ -152,7 +148,7 @@ class TestOnUnload < LoaderTest
       loader.on_unload { x << 2 }
       loader.on_unload("X") { x << 1 }
 
-      assert X
+      assert loader::X
       loader.reload
 
       assert_equal [1, 2], x
@@ -164,8 +160,8 @@ class TestOnUnload < LoaderTest
       on_unload_for_X = false
       loader.on_unload { on_unload_for_X = true }
 
-      assert X
-      remove_const :X
+      assert loader::X
+      loader.send(:remove_const, :X)
       loader.reload
 
       assert !on_unload_for_X
@@ -173,13 +169,11 @@ class TestOnUnload < LoaderTest
   end
 
   test "on_unload for :ANY is is resilient to failed autoloads" do
-    on_teardown { remove_const :Y }
-
     with_setup([["x.rb", "Y = 1"]]) do
       on_unload_for_X = false
       loader.on_unload { on_unload_for_X = true }
 
-      assert_raises(Im::NameError) { X }
+      assert_raises(Im::NameError) { loader::X }
       loader.reload
 
       assert !on_unload_for_X
@@ -187,13 +181,11 @@ class TestOnUnload < LoaderTest
   end
 
   test "on_unload on :ANY does not trigger a failed autoload twice" do
-    on_teardown { remove_const :Y }
-
     $failed_autoloads = 0
     with_setup([["x.rb", "$failed_autoloads += 1; Y = 1"]]) do
       loader.on_unload {}
 
-      assert_raises(Im::NameError) { X }
+      assert_raises(Im::NameError) { loader::X }
       loader.reload
 
       assert_equal 1, $failed_autoloads

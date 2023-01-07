@@ -4,6 +4,8 @@ require "test_helper"
 
 class TestMarshal < LoaderTest
   test "Marshal.load autoloads a top-level class" do
+    skip "marshal does not work with anonymous modules"
+
     files = [["c.rb", "class C; end"]]
     with_setup(files) do
       str = Marshal.dump(C.new)
@@ -13,6 +15,8 @@ class TestMarshal < LoaderTest
   end
 
   test "Marshal.load autoloads a namespaced class (implicit)" do
+    skip "marshal does not work with anonymous modules"
+
     files = [["m/n/c.rb", "class M::N::C; end"]]
     with_setup(files) do
       str = Marshal.dump(M::N::C.new)
@@ -22,6 +26,8 @@ class TestMarshal < LoaderTest
   end
 
   test "Marshal.load autoloads a namespaced class (explicit)" do
+    skip "marshal does not work with anonymous modules"
+
     files = [
       ["m.rb", "module M; end"],
       ["m/n/c.rb", "class M::N::C; end"]
@@ -34,6 +40,8 @@ class TestMarshal < LoaderTest
   end
 
   test "Marshal.load autoloads several classes" do
+    skip "marshal does not work with anonymous modules"
+
     files = [
       ["c.rb", "class C; end"],
       ["d.rb", "class D; end"]

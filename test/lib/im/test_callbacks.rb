@@ -14,7 +14,7 @@ class TestCallbacks < LoaderTest
     files = [["x.rb", "X = true"]]
     with_setup(files) do
       $on_file_autoloaded_called = false
-      assert X
+      assert loader::X
       assert $on_file_autoloaded_called
     end
   end
@@ -34,7 +34,7 @@ class TestCallbacks < LoaderTest
     with_setup(files, load_path: ".") do
       $on_file_autoloaded_called = false
       require "y"
-      assert Y
+      assert loader::Y
       assert $on_file_autoloaded_called
     end
   end
@@ -50,7 +50,7 @@ class TestCallbacks < LoaderTest
     files = [["m/x.rb", "M::X = true"]]
     with_setup(files) do
       $on_dir_autoloaded_called = false
-      assert M::X
+      assert loader::M::X
       assert $on_dir_autoloaded_called
     end
   end

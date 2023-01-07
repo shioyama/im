@@ -51,28 +51,28 @@ class TestOldSchoolWorkaroundSTI < LoaderTest
 
   test "loading the root loads everything" do
     with_setup do
-      assert A
+      assert loader::A
       assert_all_loaded
     end
   end
 
   test "loading a root child loads everything" do
     with_setup do
-      assert B
+      assert loader::B
       assert_all_loaded
     end
   end
 
   test "loading an intermediate descendant loads everything" do
     with_setup do
-      assert C
+      assert loader::C
       assert_all_loaded
     end
   end
 
   test "loading a leaf loads everything" do
     with_setup do
-      assert D1
+      assert loader::D1
       assert_all_loaded
     end
   end

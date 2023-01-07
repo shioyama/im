@@ -69,11 +69,11 @@ class TestLogging < LoaderTest
     files = [["x.rb", "X = true"]]
     with_files(files) do
       with_load_path(".") do
-        assert_logged(/constant X loaded from file #{File.expand_path("x.rb")}/) do
+        assert_logged(/constant #{loader}::X loaded from file #{File.expand_path("x.rb")}/) do
           loader.push_dir(".")
           loader.setup
 
-          assert X
+          assert loader::X
         end
       end
     end
@@ -83,7 +83,7 @@ class TestLogging < LoaderTest
     files = [["x.rb", "X = true"]]
     with_files(files) do
       with_load_path(".") do
-        assert_logged(/constant X loaded from file #{File.expand_path("x.rb")}/) do
+        assert_logged(/constant #{loader}::X loaded from file #{File.expand_path("x.rb")}/) do
           loader.push_dir(".")
           loader.setup
 
@@ -97,11 +97,11 @@ class TestLogging < LoaderTest
     files = [["admin/user.rb", "class Admin::User; end"]]
     with_files(files) do
       with_load_path(".") do
-        assert_logged(/module Admin autovivified from directory #{File.expand_path("admin")}/) do
+        assert_logged(/module #{loader}::Admin autovivified from directory #{File.expand_path("admin")}/) do
           loader.push_dir(".")
           loader.setup
 
-          assert Admin
+          assert loader::Admin
         end
       end
     end
@@ -117,7 +117,7 @@ class TestLogging < LoaderTest
     with_files(files) do
       loader.push_dir("a")
       loader.push_dir("b")
-      assert_logged(/earlier autoload for M discarded, it is actually an explicit namespace defined in #{File.expand_path("b/m.rb")}/) do
+      assert_logged(/earlier autoload for #{loader}::M discarded, it is actually an explicit namespace defined in #{File.expand_path("b/m.rb")}/) do
         loader.setup
       end
     end
@@ -126,7 +126,7 @@ class TestLogging < LoaderTest
   test "logs autoload configured for files" do
     files = [["x.rb", "X = true"]]
     with_files(files) do
-      assert_logged("autoload set for X, to be loaded from #{File.expand_path("x.rb")}") do
+      assert_logged("autoload set for #{loader}::X, to be loaded from #{File.expand_path("x.rb")}") do
         loader.push_dir(".")
         loader.setup
       end
@@ -136,7 +136,7 @@ class TestLogging < LoaderTest
   test "logs autoload configured for directories" do
     files = [["admin/user.rb", "class Admin::User; end"]]
     with_files(files) do
-      assert_logged("autoload set for Admin, to be autovivified from #{File.expand_path("admin")}") do
+      assert_logged("autoload set for #{loader}::Admin, to be autovivified from #{File.expand_path("admin")}") do
         loader.push_dir(".")
         loader.setup
       end
@@ -146,7 +146,7 @@ class TestLogging < LoaderTest
   test "logs unloads for autoloads" do
     files = [["x.rb", "X = true"]]
     with_files(files) do
-      assert_logged(/autoload for X removed/) do
+      assert_logged(/autoload for #{loader}::X removed/) do
         loader.push_dir(".")
         loader.setup
         loader.reload
@@ -157,25 +157,11 @@ class TestLogging < LoaderTest
   test "logs unloads for loaded objects" do
     files = [["x.rb", "X = true"]]
     with_files(files) do
-      assert_logged(/X unloaded/) do
+      assert_logged(/#{loader}::X unloaded/) do
         loader.push_dir(".")
         loader.setup
-        assert X
+        assert loader::X
         loader.reload
-      end
-    end
-  end
-
-  test "logs files shadowed by autoloads" do
-    files = [
-      ["a/foo.rb", "Foo = :a"],
-      ["b/foo.rb", "Foo = :b"]
-    ]
-    with_files(files) do
-      new_loader(dirs: "a")
-      assert_logged(%r(file .*?/b/foo\.rb is ignored because .*?/a/foo\.rb has precedence)) do
-        loader.push_dir("b")
-        loader.setup
       end
     end
   end
@@ -197,13 +183,11 @@ class TestLogging < LoaderTest
   end
 
   test "eager loading skips files that would map to already loaded constants" do
-    on_teardown { remove_const :X }
-
-    ::X = 1
+    loader::X = 1
     files = [["x.rb", "X = 1"]]
     with_files(files) do
       loader.push_dir(".")
-      assert_logged(%r(file .*?/x\.rb is ignored because X is already defined)) do
+      assert_logged(%r(file .*?/x\.rb is ignored because #{loader}::X is already defined)) do
         loader.setup
       end
     end
