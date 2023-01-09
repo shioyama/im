@@ -96,7 +96,7 @@ class TestRequireInteraction < LoaderTest
     files = [["foo/bar/baz/zoo/woo.rb", "Foo::Bar::Baz::Zoo::Woo = 1"]]
     with_setup(files, load_path: ".") do
       assert_required "foo/bar/baz/zoo/woo"
-      assert loader.unloadable_cpath?("#{loader}::Foo::Bar::Baz::Zoo::Woo")
+      assert loader.unloadable_cpath?("Foo::Bar::Baz::Zoo::Woo")
     end
   end
 
@@ -108,8 +108,8 @@ class TestRequireInteraction < LoaderTest
     ]
     with_setup(files, load_path: ".") do
       assert_required "foo/bar/baz/zoo/woo"
-      assert loader.unloadable_cpath?("#{loader}::Foo::Bar::Baz::Zoo::Wadus")
-      assert loader.unloadable_cpath?("#{loader}::Foo::Bar::Baz::Zoo::Woo")
+      assert loader.unloadable_cpath?("Foo::Bar::Baz::Zoo::Wadus")
+      assert loader.unloadable_cpath?("Foo::Bar::Baz::Zoo::Woo")
     end
   end
 

@@ -69,7 +69,7 @@ class TestLogging < LoaderTest
     files = [["x.rb", "X = true"]]
     with_files(files) do
       with_load_path(".") do
-        assert_logged(/constant #{loader}::X loaded from file #{File.expand_path("x.rb")}/) do
+        assert_logged(/constant X loaded from file #{File.expand_path("x.rb")}/) do
           loader.push_dir(".")
           loader.setup
 
@@ -83,7 +83,7 @@ class TestLogging < LoaderTest
     files = [["x.rb", "X = true"]]
     with_files(files) do
       with_load_path(".") do
-        assert_logged(/constant #{loader}::X loaded from file #{File.expand_path("x.rb")}/) do
+        assert_logged(/constant X loaded from file #{File.expand_path("x.rb")}/) do
           loader.push_dir(".")
           loader.setup
 
@@ -97,7 +97,7 @@ class TestLogging < LoaderTest
     files = [["admin/user.rb", "class Admin::User; end"]]
     with_files(files) do
       with_load_path(".") do
-        assert_logged(/module #{loader}::Admin autovivified from directory #{File.expand_path("admin")}/) do
+        assert_logged(/module Admin autovivified from directory #{File.expand_path("admin")}/) do
           loader.push_dir(".")
           loader.setup
 

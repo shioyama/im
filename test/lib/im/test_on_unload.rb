@@ -111,7 +111,7 @@ class TestOnUnload < LoaderTest
       loader.reload
 
       assert_equal 1, args.length
-      assert_equal "#{loader}::X", args[0][0]
+      assert_equal "X", args[0][0]
       assert_equal 1, args[0][1]
       assert_abspath "x.rb", args[0][2]
     end

@@ -4,6 +4,8 @@ require "set"
 
 module Im
   class Loader < Module
+    UNBOUND_METHOD_MODULE_TO_S = Module.instance_method(:to_s)
+
     require_relative "loader/helpers"
     require_relative "loader/callbacks"
     require_relative "loader/config"
@@ -86,6 +88,14 @@ module Im
     attr_reader :shadowed_files
 
     # @private
+    # @sig Hash[Integer, String]
+    attr_reader :module_names
+
+    # @private
+    # @sig String
+    attr_reader :module_prefix
+
+    # @private
     # @sig Mutex
     attr_reader :mutex
 
@@ -96,11 +106,13 @@ module Im
     def initialize
       super
 
+      @module_prefix   = "#{UNBOUND_METHOD_MODULE_TO_S.bind_call(self)}::"
       @autoloads       = {}
       @autoloaded_dirs = []
       @to_unload       = {}
       @namespace_dirs  = Hash.new { |h, cpath| h[cpath] = [] }
       @shadowed_files  = Set.new
+      @module_names    = {}
       @mutex           = Mutex.new
       @mutex2          = Mutex.new
       @setup           = false
@@ -197,6 +209,7 @@ module Im
         to_unload.clear
         namespace_dirs.clear
         shadowed_files.clear
+        module_names.clear
 
         Registry.on_unload(self)
         ExplicitNamespace.__unregister_loader(self)
@@ -478,6 +491,24 @@ module Im
           end
         end
       end
+    end
+
+    def get_module_name(parent, cname)
+      if self == parent
+        cname.to_s
+      elsif module_names.key?(parent.object_id)
+        "#{module_names[parent.object_id]}::#{cname}"
+      else
+        # If an autoloaded file loads an autoloaded constant from another file, we need to deduce the module name
+        # before we can add the parent to module_names. In this case, we have no choice but to work from to_s.
+        mod_name = UNBOUND_METHOD_MODULE_TO_S.bind_call(parent)
+        raise InvalidModuleName, "invalid module name for #{parent}" unless mod_name.start_with?(module_prefix)
+        "#{mod_name}::#{cname}".delete_prefix!(module_prefix)
+      end
+    end
+
+    def register_module_name(mod, module_name)
+      module_names[mod.object_id] = module_name
     end
 
     # @sig (String, Object, String) -> void

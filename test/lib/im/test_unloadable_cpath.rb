@@ -21,13 +21,13 @@ class TestUnloadableCpath < LoaderTest
     with_setup(files) do
       assert loader::M::X
 
-      assert_equal ["#{loader}::M", "#{loader}::M::X"], loader.unloadable_cpaths
+      assert_equal ["M", "M::X"], loader.unloadable_cpaths
 
-      assert loader.unloadable_cpath?("#{loader}::M")
-      assert loader.unloadable_cpath?("#{loader}::M::X")
+      assert loader.unloadable_cpath?("M")
+      assert loader.unloadable_cpath?("M::X")
 
-      assert !loader.unloadable_cpath?("#{loader}::M::Y")
-      assert !loader.unloadable_cpath?("#{loader}::Z")
+      assert !loader.unloadable_cpath?("M::Y")
+      assert !loader.unloadable_cpath?("Z")
     end
   end
 
@@ -41,7 +41,7 @@ class TestUnloadableCpath < LoaderTest
     RUBY
     with_setup(files) do
       assert loader::M::C
-      assert loader.unloadable_cpath?("#{loader}::M::C")
+      assert loader.unloadable_cpath?("M::C")
     end
   end
 

@@ -8,21 +8,19 @@ module Im::Loader::Callbacks
   # @private
   # @sig (String) -> void
   def on_file_autoloaded(file)
-    cref  = autoloads.delete(file)
-    cpath = cpath(*cref)
+    cref = autoloads.delete(file)
 
-    # If reloading is enabled, we need to put this constant for unloading
-    # regardless of what cdef? says. In Ruby < 3.1 the internal state is not
-    # fully cleared. Module#constants still includes it, and you need to
-    # remove_const. See https://github.com/ruby/ruby/pull/4715.
+    cpath = get_module_name(*cref)
     to_unload[cpath] = [file, cref] if reloading_enabled?
     Im::Registry.unregister_autoload(file)
 
     if cdef?(*cref)
+      obj = cget(*cref)
+      register_module_name(obj, cpath) if obj.is_a?(Module)
       log("constant #{cpath} loaded from file #{file}") if logger
-      run_on_load_callbacks(cpath, cget(*cref), file) unless on_load_callbacks.empty?
+      run_on_load_callbacks(cpath, obj, file) unless on_load_callbacks.empty?
     else
-      raise Im::NameError.new("expected file #{file} to define constant #{cpath}, but didn't", cref.last)
+      raise Im::NameError.new("expected file #{file} to define constant #{cpath(*cref)}, but didn't", cref.last)
     end
   end
 
@@ -46,7 +44,8 @@ module Im::Loader::Callbacks
     mutex2.synchronize do
       if cref = autoloads.delete(dir)
         autovivified_module = cref[0].const_set(cref[1], Module.new)
-        cpath = autovivified_module.name
+        cpath = get_module_name(*cref)
+        register_module_name(autovivified_module, cpath)
         log("module #{cpath} autovivified from directory #{dir}") if logger
 
         to_unload[cpath] = [dir, cref] if reloading_enabled?

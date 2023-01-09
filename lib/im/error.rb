@@ -18,4 +18,7 @@ module Im
       super("please, finish your configuration and call Im::Loader#setup once all is ready")
     end
   end
+
+  class InvalidModuleName < Error
+  end
 end

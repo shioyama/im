@@ -59,7 +59,7 @@ class TestOnLoad < LoaderTest
     with_setup([["x.rb", "X = 1"]]) do
       args = []; loader.on_load("X") { |*a| args = a }
 
-      assert loader::X
+      loader::X
       assert_equal 1, args[0]
       assert_abspath "x.rb", args[1]
     end
@@ -70,7 +70,7 @@ class TestOnLoad < LoaderTest
       args = []; loader.on_load { |*a| args = a }
 
       assert loader::X
-      assert_equal "#{loader}::X", args[0]
+      assert_equal "X", args[0]
       assert_equal 1, args[1]
       assert_abspath "x.rb", args[2]
     end
@@ -81,7 +81,7 @@ class TestOnLoad < LoaderTest
       args = []; loader.on_load { |*a| args = a }
 
       assert loader::X
-      assert_equal "#{loader}::X", args[0]
+      assert_equal "X", args[0]
       assert_equal loader::X, args[1]
       assert_abspath "x", args[2]
     end
@@ -92,7 +92,7 @@ class TestOnLoad < LoaderTest
       args = []; loader.on_load { |*a| args = a }
 
       assert loader::X::A
-      assert_equal "#{loader}::X::A", args[0]
+      assert_equal "X::A", args[0]
       assert_equal loader::X::A, args[1]
       assert_abspath "x/a.rb", args[2]
     end
@@ -157,7 +157,7 @@ class TestOnLoad < LoaderTest
   test "on_load :ANY for namespaces gets called with child constants available (implicit)" do
     with_setup([["x/a.rb", "X::A = 1"]]) do
       ok = false
-      loader.on_load { |cpath| ok = loader::X.const_defined?(:A) if cpath == "#{loader}::X" }
+      loader.on_load { |cpath| ok = loader::X.const_defined?(:A) if cpath == "X" }
 
       assert loader::X
       assert ok
@@ -167,7 +167,7 @@ class TestOnLoad < LoaderTest
   test "on_load :ANY for namespaces gets called with child constants available (explicit)" do
     with_setup([["x.rb", "module X; end"], ["x/a.rb", "X::A = 1"]]) do
       ok = false
-      loader.on_load { |cpath| ok = loader::X.const_defined?(:A) if cpath == "#{loader}::X" }
+      loader.on_load { |cpath| ok = loader::X.const_defined?(:A) if cpath == "X" }
 
       assert loader::X
       assert ok

@@ -61,14 +61,14 @@ class TestEagerLoad < LoaderTest
 
     files = [
       ["my_gem.rb", <<-EOS],
-        loader = Im::Loader.for_gem
-        loader.setup
+        $test_eager_load_loader = Im::Loader.for_gem
+        $test_eager_load_loader.setup
 
-        class loader::MyGem
-          Foo::Baz # autoloads fine
+        class $test_eager_load_loader::MyGem
+          self::Foo::Baz # autoloads fine
         end
 
-        loader.eager_load
+        $test_eager_load_loader.eager_load
       EOS
       ["my_gem/foo.rb", "class MyGem::Foo; end"],
       ["my_gem/foo/bar.rb", "class MyGem::Foo::Bar; end"],
@@ -303,7 +303,7 @@ class TestEagerLoad < LoaderTest
         loader.eager_load
       end
 
-      assert_equal ["#{loader}::X", "#{loader}::Y"], loaded
+      assert_equal ["X", "Y"], loaded
     end
   end
 

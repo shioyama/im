@@ -229,10 +229,7 @@ module Im::Loader::Config
   # @sig (String) { (Object, String) -> void } -> void
   #      (:ANY) { (String, Object, String) -> void } -> void
   def on_load(cpath = :ANY, &block)
-    unless cpath == :ANY
-      raise TypeError, "on_load only accepts strings" unless cpath.is_a?(String)
-      cpath = "#{self}::#{cpath}"
-    end
+    raise TypeError, "on_load only accepts strings" unless cpath.is_a?(String) || cpath == :ANY
 
     mutex.synchronize do
       (on_load_callbacks[cpath] ||= []) << block
@@ -257,10 +254,7 @@ module Im::Loader::Config
   # @sig (String) { (Object) -> void } -> void
   #      (:ANY) { (String, Object) -> void } -> void
   def on_unload(cpath = :ANY, &block)
-    unless cpath == :ANY
-      raise TypeError, "on_unload only accepts strings" unless cpath.is_a?(String)
-      cpath = "#{self}::#{cpath}"
-    end
+    raise TypeError, "on_unload only accepts strings" unless cpath.is_a?(String) || cpath == :ANY
 
     mutex.synchronize do
       (on_unload_callbacks[cpath] ||= []) << block
