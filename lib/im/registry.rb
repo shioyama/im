@@ -68,6 +68,10 @@ module Im
       # @sig Hash[String, [String, Im::Loader]]
       attr_reader :inceptions
 
+      # @private
+      # @sig Hash[Integer, [Im::Loader, String]]
+      attr_reader :autoloaded_modules
+
       # Registers a loader.
       #
       # @private
@@ -84,6 +88,7 @@ module Im
         autoloads.delete_if { |_, l| l == loader }
         paths.delete_if { |_, l| l == loader }
         inceptions.delete_if { |_, (_, l)| l == loader }
+        autoloaded_modules.delete_if { |_, (_, l)| l == loader }
       end
 
       # This method returns always a loader, the same instance for the same root
@@ -133,6 +138,10 @@ module Im
         end
       end
 
+      def register_autoloaded_module(mod, module_name, loader)
+        autoloaded_modules[mod.object_id] = [module_name, loader]
+      end
+
       # @private
       # @sig (String) -> Im::Loader?
       def loader_for(path)
@@ -152,5 +161,6 @@ module Im
     @autoloads                = {}
     @paths                    = {}
     @inceptions               = {}
+    @autoloaded_modules       = {}
   end
 end

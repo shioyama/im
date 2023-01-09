@@ -32,6 +32,7 @@ class LoaderTest < Minitest::Test
     Im::Registry.autoloads.clear
     Im::Registry.paths.clear
     Im::Registry.inceptions.clear
+    Im::Registry.autoloaded_modules.clear
   end
 
   def reset_explicit_namespace

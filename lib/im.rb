@@ -7,6 +7,7 @@ module Im
   require_relative "im/gem_loader"
   require_relative "im/registry"
   require_relative "im/explicit_namespace"
+  require_relative "im/module_const_added"
   require_relative "im/inflector"
   require_relative "im/gem_inflector"
   require_relative "im/kernel"
