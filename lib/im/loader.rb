@@ -20,6 +20,15 @@ module Im
     MUTEX = Mutex.new
     private_constant :MUTEX
 
+    # Make debugging easier
+    def inspect
+      Object.instance_method(:inspect).bind_call(self)
+    end
+
+    def pretty_print(q)
+      q.pp_object(self)
+    end
+
     # Maps absolute paths for which an autoload has been set ---and not
     # executed--- to their corresponding parent class or module and constant
     # name.
