@@ -10,13 +10,16 @@ module Im::ModuleConstAdded
     name = UNBOUND_METHOD_MODULE_NAME.bind_call(self)
     return super unless name && !name.start_with?("#")
 
-    loader, cpath = Im::Registry.autoloaded_modules[const_get(const_name).object_id]
+    module_name, loader = Im::Registry.autoloaded_modules[const_get(const_name).object_id]
     return super unless loader
 
+    prefix = "#{loader.module_prefix}#{module_name}"
+    pattern = /^#{prefix}/
     replacement = "#{name}::#{const_name}"
 
-    Im::ExplicitNamespace.__update_cpaths(cpath, replacement)
-    loader.update_cpaths(cpath, replacement)
+    Im::ExplicitNamespace.send(:cpaths).transform_keys! do |key|
+      key.start_with?(prefix) ? key.gsub(pattern, replacement) : key
+    end
 
     super
   rescue NameError

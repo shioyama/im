@@ -109,14 +109,14 @@ class TestUnload < LoaderTest
     ]
     with_files(files) do
       la = new_loader(dirs: "a")
-      assert Im::ExplicitNamespace.send(:cpaths)["#{la}::M"] == la
+      assert Im::ExplicitNamespace.send(:cpaths)["#{la}::M"] == ["M", la]
 
       lb = new_loader(dirs: "b")
-      assert Im::ExplicitNamespace.send(:cpaths)["#{lb}::X"] == lb
+      assert Im::ExplicitNamespace.send(:cpaths)["#{lb}::X"] == ["X", lb]
 
       la.unload
       assert_nil Im::ExplicitNamespace.send(:cpaths)["#{la}::M"]
-      assert Im::ExplicitNamespace.send(:cpaths)["#{lb}::X"] == lb
+      assert Im::ExplicitNamespace.send(:cpaths)["#{lb}::X"] == ["X", lb]
     end
   end
 

@@ -16,7 +16,7 @@ module Im
       # Maps constant paths that correspond to explicit namespaces according to
       # the file system, to the loader responsible for them.
       #
-      # @sig Hash[String, Im::Loader]
+      # @sig Hash[String, [String, Im::Loader]]
       attr_reader :cpaths
       private :cpaths
 
@@ -32,9 +32,9 @@ module Im
       # is responsible.
       #
       # @sig (String, Im::Loader) -> void
-      internal def register(cpath, loader)
+      internal def register(cpath, module_name, loader)
         mutex.synchronize do
-          cpaths[cpath] = loader
+          cpaths[cpath] = [module_name, loader]
           # We check enabled? because, looking at the C source code, enabling an
           # enabled tracer does not seem to be a simple no-op.
           tracer.enable unless tracer.enabled?
@@ -43,7 +43,7 @@ module Im
 
       # @sig (Im::Loader) -> void
       internal def unregister_loader(loader)
-        cpaths.delete_if { |_cpath, l| l == loader }
+        cpaths.delete_if { |_cpath, (_, l)| l == loader }
         disable_tracer_if_unneeded
       end
 
@@ -69,8 +69,9 @@ module Im
         # On the other hand, if we were called, cpaths is not empty. Otherwise
         # the tracer is disabled. So we do need to go ahead with the hash code
         # computation and delete call.
-        if loader = cpaths.delete(real_mod_name(event.self))
-          loader.on_namespace_loaded(event.self)
+        module_name, loader = cpaths.delete(real_mod_name(event.self))
+        if loader
+          loader.on_namespace_loaded(module_name)
           disable_tracer_if_unneeded
         end
       end

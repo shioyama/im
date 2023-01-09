@@ -386,15 +386,16 @@ module Im
     def autoload_subdir(parent, cname, subdir)
       if autoload_path = autoload_path_set_by_me_for?(parent, cname)
         cpath = cpath(parent, cname)
-        register_explicit_namespace(cpath) if ruby?(autoload_path)
+        register_explicit_namespace(cpath, get_module_name(parent, cname)) if ruby?(autoload_path)
 
         # We do not need to issue another autoload, the existing one is enough
         # no matter if it is for a file or a directory. Just remember the
         # subdirectory has to be visited if the namespace is used.
-        namespace_dirs[cpath] << subdir
+        mod_name = get_module_name(parent, cname)
+        namespace_dirs[mod_name] << subdir
       elsif !cdef?(parent, cname)
         # First time we find this namespace, set an autoload for it.
-        namespace_dirs[cpath(parent, cname)] << subdir
+        namespace_dirs[get_module_name(parent, cname)] << subdir
         set_autoload(parent, cname, subdir)
       else
         # For whatever reason the constant that corresponds to this namespace has
@@ -439,7 +440,7 @@ module Im
       log("earlier autoload for #{cpath(parent, cname)} discarded, it is actually an explicit namespace defined in #{file}") if logger
 
       set_autoload(parent, cname, file)
-      register_explicit_namespace(cpath(parent, cname))
+      register_explicit_namespace(cpath(parent, cname), get_module_name(parent, cname))
     end
 
     # @sig (Module, Symbol, String) -> void
@@ -473,8 +474,8 @@ module Im
     end
 
     # @sig (String) -> void
-    def register_explicit_namespace(cpath)
-      ExplicitNamespace.__register(cpath, self)
+    def register_explicit_namespace(cpath, module_name)
+      ExplicitNamespace.__register(cpath, module_name, self)
     end
 
     # @sig (String) -> void

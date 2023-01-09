@@ -58,7 +58,7 @@ module Im::Loader::Callbacks
         # these to be able to unregister later if eager loading.
         autoloaded_dirs << dir
 
-        on_namespace_loaded(autovivified_module)
+        on_namespace_loaded(module_name)
 
         run_on_load_callbacks(module_name, autovivified_module, dir) unless on_load_callbacks.empty?
       end
@@ -71,10 +71,10 @@ module Im::Loader::Callbacks
   #
   # @private
   # @sig (Module) -> void
-  def on_namespace_loaded(namespace)
-    if dirs = namespace_dirs.delete(real_mod_name(namespace))
+  def on_namespace_loaded(module_name)
+    if dirs = namespace_dirs.delete(module_name)
       dirs.each do |dir|
-        set_autoloads_in_dir(dir, namespace)
+        set_autoloads_in_dir(dir, cget(self, module_name))
       end
     end
   end
