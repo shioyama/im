@@ -5,6 +5,7 @@ require "set"
 module Im
   class Loader < Module
     UNBOUND_METHOD_MODULE_TO_S = Module.instance_method(:to_s)
+    UNBOUND_METHOD_REMOVE_CONST = Module.instance_method(:remove_const)
 
     require_relative "loader/helpers"
     require_relative "loader/callbacks"
@@ -128,6 +129,7 @@ module Im
       @eager_loaded    = false
 
       Registry.register_loader(self)
+      Registry.register_autoloaded_module(self, nil, self)
     end
 
     # Sets autoloads in the root namespaces.
@@ -193,6 +195,9 @@ module Im
               run_on_unload_callbacks(cpath, value, abspath)
             end
           end
+
+          # Replace all inbound references to constant by autoloads.
+          reset_inbound_references(parent, cname)
 
           unload_cref(parent, cname)
           unloaded_files.add(abspath) if ruby?(abspath)
@@ -512,8 +517,9 @@ module Im
         # If an autoloaded file loads an autoloaded constant from another file, we need to deduce the module name
         # before we can add the parent to module_names. In this case, we have no choice but to work from to_s.
         mod_name = UNBOUND_METHOD_MODULE_TO_S.bind_call(parent)
-        raise InvalidModuleName, "invalid module name for #{parent}" unless mod_name.start_with?(module_prefix)
-        "#{mod_name}::#{cname}".delete_prefix!(module_prefix)
+        current_module_prefix = "#{real_mod_name(self)}::"
+        raise InvalidModuleName, "invalid module name for #{parent}" unless mod_name.start_with?(current_module_prefix)
+        "#{mod_name}::#{cname}".delete_prefix!(current_module_prefix)
       end
     end
 
@@ -544,6 +550,36 @@ module Im
       # is gone, that is OK, anyway.
     else
       log("#{cpath(parent, cname)} unloaded") if logger
+    end
+
+    # When a named constant that points to an Im-autoloaded module is removed,
+    # any inbound (named) references to the module must be removed and replaced
+    # by autoloads with an on_load callback to reset the alias.
+    def reset_inbound_references(parent, cname)
+      return unless (mod = parent.const_get(cname)).is_a?(Module)
+
+      mod_name, loader, references = Im::Registry.autoloaded_modules[mod.object_id]
+      return unless mod_name
+
+      begin
+        references.each do |reference|
+          reset_inbound_reference(*reference, mod_name)
+          log("inbound reference from #{cpath(*reference)} to #{loader}::#{mod_name} replaced by autoload") if logger
+        end
+      ensure
+        Im::Registry.autoloaded_modules.delete(mod.object_id)
+      end
+    rescue ::NameError
+    end
+
+    def reset_inbound_reference(parent, cname, mod_name)
+      UNBOUND_METHOD_REMOVE_CONST.bind_call(parent, cname)
+      abspath, _ = to_unload[mod_name]
+
+      # Bypass public on_load to avoid mutex deadlock.
+      _on_load(mod_name) { parent.const_set(cname, const_get(mod_name, false)) }
+
+      parent.autoload(cname, abspath)
     end
   end
 end

@@ -16,8 +16,10 @@ module Im::Loader::Callbacks
 
     if cdef?(*cref)
       obj = cget(*cref)
-      register_module_name(obj, module_name) if obj.is_a?(Module)
-      Im::Registry.register_autoloaded_module(obj, module_name, self)
+      if obj.is_a?(Module)
+        register_module_name(obj, module_name)
+        Im::Registry.register_autoloaded_module(obj, module_name, self)
+      end
       log("constant #{module_name} loaded from file #{file}") if logger
       run_on_load_callbacks(module_name, obj, file) unless on_load_callbacks.empty?
     else

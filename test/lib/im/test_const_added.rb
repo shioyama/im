@@ -3,8 +3,8 @@
 require "test_helper"
 
 class TestConstAdded < LoaderTest
-  test "loads nested constants correctly after root has been named" do
-    files = [
+  def files
+    [
       ["a.rb", <<-EOS1], ["a/b.rb", <<~EOS2], ["a/b/c.rb", <<~EOS3]
       module A; end
       EOS1
@@ -21,6 +21,11 @@ class TestConstAdded < LoaderTest
       end
       EOS3
     ]
+  end
+
+  test "loads nested constants correctly after root has been named" do
+    on_teardown { remove_const :X, from: self.class }
+
     with_setup(files) do
       assert loader::A
       X = loader::A
@@ -32,23 +37,10 @@ class TestConstAdded < LoaderTest
   end
 
   test "multiple constant aliases" do
-    files = [
-      ["a.rb", <<-EOS1], ["a/b.rb", <<~EOS2], ["a/b/c.rb", <<~EOS3]
-      module A; end
-      EOS1
-      module A
-        module B
-        end
-      end
-      EOS2
-      module A
-        module B
-          module C
-          end
-        end
-      end
-      EOS3
-    ]
+    on_teardown do
+      remove_const :X, from: self.class
+      remove_const :Y, from: self.class
+    end
 
     with_setup(files) do
       assert loader::A
@@ -61,25 +53,7 @@ class TestConstAdded < LoaderTest
   end
 
   test "compatible with reload" do
-    skip "not working yet"
-
-    files = [
-      ["a.rb", <<-EOS1], ["a/b.rb", <<~EOS2], ["a/b/c.rb", <<~EOS3]
-      module A; end
-      EOS1
-      module A
-        module B
-        end
-      end
-      EOS2
-      module A
-        module B
-          module C
-          end
-        end
-      end
-      EOS3
-    ]
+    on_teardown { remove_const :X, from: self.class }
 
     with_setup(files) do
       loader.enable_reloading
@@ -91,35 +65,38 @@ class TestConstAdded < LoaderTest
   end
 
   test "compatible with reloading of constants that have been aliased" do
-    skip "not working yet"
-
-    files = [
-      ["a.rb", <<-EOS1], ["a/b.rb", <<~EOS2], ["a/b/c.rb", <<~EOS3]
-      module A; end
-      EOS1
-      module A
-        module B
-        end
-      end
-      EOS2
-      module A
-        module B
-          module C
-          end
-        end
-      end
-      EOS3
-    ]
+    on_teardown do
+      remove_const :X, from: self.class
+      remove_const :Y, from: self.class
+      remove_const :Z, from: self.class
+    end
 
     with_setup(files) do
       loader.enable_reloading
       X = loader::A
-      Y = loader::A::B
+      Y = loader::A
+      Z = loader::A::B
       assert(X::B)
-      assert(Y::C)
+      assert(Y::B)
+      assert(Z::C)
       loader.reload
       assert(X::B)
-      assert(Y::C)
+      assert(Y::B)
+      assert(Z::C)
+    end
+  end
+
+  test "named root" do
+    on_teardown { remove_const :X, from: self.class }
+
+    with_setup(files) do
+      loader.enable_reloading
+      X = loader
+      assert(X::A)
+      assert(X::A::B)
+      loader.reload
+      assert(X::A)
+      assert(X::A::B)
     end
   end
 end

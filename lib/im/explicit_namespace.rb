@@ -47,6 +47,14 @@ module Im
         disable_tracer_if_unneeded
       end
 
+      internal def update_cpaths(prefix, pattern, replacement)
+        mutex.synchronize do
+          cpaths.transform_keys! do |key|
+            key.start_with?(prefix) ? key.gsub(pattern, replacement) : key
+          end
+        end
+      end
+
       # @sig () -> void
       private def disable_tracer_if_unneeded
         mutex.synchronize do

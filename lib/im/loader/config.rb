@@ -231,9 +231,13 @@ module Im::Loader::Config
   def on_load(cpath = :ANY, &block)
     raise TypeError, "on_load only accepts strings" unless cpath.is_a?(String) || cpath == :ANY
 
-    mutex.synchronize do
-      (on_load_callbacks[cpath] ||= []) << block
-    end
+    mutex.synchronize { _on_load(cpath, &block) }
+  end
+
+  # @sig (String) { (Object, String) -> void } -> void
+  #      (:ANY) { (String, Object, String) -> void } -> void
+  private def _on_load(cpath, &block)
+    (on_load_callbacks[cpath] ||= []) << block
   end
 
   # Configure a block to be invoked right before a certain constant is removed.
