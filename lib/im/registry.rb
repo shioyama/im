@@ -38,7 +38,7 @@ module Im
       #   loader.push_dir(__dir__)
       #   loader.setup
       #
-      #   module MyGem
+      #   module loader::MyGem
       #   end
       #
       # if you require "my_gem", as Bundler would do, this happens while setting
@@ -60,7 +60,7 @@ module Im
       # below the constant definition, because we want libraries to be able to
       # use managed constants in the module body:
       #
-      #   module MyGem
+      #   module loader::MyGem
       #     include MyConcern
       #   end
       #
