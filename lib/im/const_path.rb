@@ -27,6 +27,8 @@ module Im
       temporary_name?(real_mod_name(mod))
     end
 
+    private
+
     # @sig (Module) -> String
     def real_mod_to_s(mod)
       UNBOUND_METHOD_MODULE_TO_S.bind_call(mod)

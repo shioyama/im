@@ -17,8 +17,7 @@ module Im::ModuleConstAdded
     return super if autoload?(const_name)
 
     # Get the name of this module and only continue if it is a permanent name.
-    name = Im.real_mod_name(self)
-    return super if Im.temporary_name?(name)
+    return unless cpath = Im.permanent_cpath(self)
 
     # We know this is not an autoloaded constant, so it is safe to fetch the
     # value. We fetch the value, get it's object_id, and check the registry to
@@ -53,7 +52,7 @@ module Im::ModuleConstAdded
     #   "#<Im::Loader ...>::Foo::Bar".gsub(/^#{"#<Im::Loader ...>::Foo"}/, "Baz")
     #
     prefix = relative_cpath ? "#{loader.module_prefix}#{relative_cpath}" : loader.module_prefix.delete_suffix("::")
-    ::Im::ExplicitNamespace.__update_cpaths(prefix, "#{name}::#{const_name}")
+    ::Im::ExplicitNamespace.__update_cpaths(prefix, "#{cpath}::#{const_name}")
 
     super
   rescue NameError
