@@ -22,16 +22,5 @@ module Im
     Registry.loader_for(feature_path) if feature_path
   end
 
-  # This is a dangerous method.
-  #
-  # @experimental
-  # @sig () -> void
-  def self.with_loader
-    loader = Im::Loader.new
-    yield loader
-  ensure
-    loader.unregister
-  end
-
   extend self
 end

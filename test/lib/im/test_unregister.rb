@@ -34,30 +34,4 @@ class TestUnregister < LoaderTest
     assert registry.inceptions.values.any? {|_, l| l == loader2}
     assert Im::ExplicitNamespace.send(:cpaths).values.any? { |_, l| loader2 == l }
   end
-
-  test 'with_loader yields and unregisters' do
-    loader = Im::Loader.new
-    unregister_was_called = false
-    loader.define_singleton_method(:unregister) { unregister_was_called = true }
-
-    Im::Loader.stub :new, loader do
-      Im.with_loader do |l|
-        assert_same loader, l
-      end
-    end
-
-    assert unregister_was_called
-  end
-
-  test 'with_loader yields and unregisters, even if an exception happens' do
-    loader = Im::Loader.new
-    unregister_was_called = false
-    loader.define_singleton_method(:unregister) { unregister_was_called = true }
-
-    Im::Loader.stub :new, loader do
-      Im.with_loader { raise } rescue nil
-    end
-
-    assert unregister_was_called
-  end
 end
