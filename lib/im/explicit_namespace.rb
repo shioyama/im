@@ -10,7 +10,6 @@ module Im
   # loading their constant before setup. This is documented.
   module ExplicitNamespace # :nodoc: all
     class << self
-      include RealModName
       extend Internal
 
       # Maps constant paths that correspond to explicit namespaces according to

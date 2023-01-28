@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 module Im::Loader::Callbacks
-  include Im::RealModName
-
   # Invoked from our decorated Kernel#require when a managed file is autoloaded.
   #
   # @private

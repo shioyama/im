@@ -78,7 +78,7 @@ module Im::Loader::EagerLoad
 
     return if @eager_loaded
 
-    mod_name = real_mod_name(mod)
+    mod_name = Im.cpath(mod)
 
     actual_roots.each do |root_dir|
       if mod.equal?(self)

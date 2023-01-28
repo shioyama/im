@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Im
-  require_relative "im/real_mod_name"
+  require_relative "im/const_path"
   require_relative "im/internal"
   require_relative "im/loader"
   require_relative "im/gem_loader"
@@ -13,6 +13,8 @@ module Im
   require_relative "im/kernel"
   require_relative "im/error"
   require_relative "im/version"
+
+  extend Im::ConstPath
 
   # This is a dangerous method.
   #

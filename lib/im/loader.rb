@@ -12,7 +12,6 @@ module Im
     require_relative "loader/config"
     require_relative "loader/eager_load"
 
-    include RealModName
     include Callbacks
     include Helpers
     include Config
@@ -517,8 +516,8 @@ module Im
       else
         # If an autoloaded file loads an autoloaded constant from another file, we need to deduce the module name
         # before we can add the parent to module_cpaths. In this case, we have no choice but to work from to_s.
-        mod_name = UNBOUND_METHOD_MODULE_TO_S.bind_call(parent)
-        current_module_prefix = "#{real_mod_name(self)}::"
+        mod_name = Im.cpath(parent)
+        current_module_prefix = "#{Im.cpath(self)}::"
         raise InvalidModuleName, "invalid module name for #{parent}" unless mod_name.start_with?(current_module_prefix)
         "#{mod_name}::#{cname}".delete_prefix!(current_module_prefix)
       end

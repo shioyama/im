@@ -5,7 +5,6 @@ require "securerandom"
 
 module Im::Loader::Config
   extend Im::Internal
-  include Im::RealModName
 
   # @sig #camelize
   attr_accessor :inflector

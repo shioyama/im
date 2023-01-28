@@ -107,7 +107,7 @@ module Im::Loader::Helpers
 
   # @sig (Module, Symbol) -> String
   private def cpath(parent, cname)
-    Object == parent ? cname.name : "#{real_mod_name(parent)}::#{cname.name}"
+    Object == parent ? cname.name : "#{Im.cpath(parent)}::#{cname.name}"
   end
 
   # @sig (Module, Symbol) -> bool
