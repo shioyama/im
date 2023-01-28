@@ -4,10 +4,11 @@ require "test_helper"
 
 class TestMarshal < LoaderTest
   test "Marshal.load autoloads a top-level class" do
-    skip "marshal does not work with anonymous modules"
+    on_teardown { remove_const :C, from: self.class }
 
     files = [["c.rb", "class C; end"]]
     with_setup(files) do
+      C = loader::C
       str = Marshal.dump(C.new)
       loader.reload
       assert_instance_of C, Marshal.load(str)
@@ -15,10 +16,11 @@ class TestMarshal < LoaderTest
   end
 
   test "Marshal.load autoloads a namespaced class (implicit)" do
-    skip "marshal does not work with anonymous modules"
+    on_teardown { remove_const :M, from: self.class }
 
     files = [["m/n/c.rb", "class M::N::C; end"]]
     with_setup(files) do
+      M = loader::M
       str = Marshal.dump(M::N::C.new)
       loader.reload
       assert_instance_of M::N::C, Marshal.load(str)
@@ -26,13 +28,14 @@ class TestMarshal < LoaderTest
   end
 
   test "Marshal.load autoloads a namespaced class (explicit)" do
-    skip "marshal does not work with anonymous modules"
+    on_teardown { remove_const :M, from: self.class }
 
     files = [
       ["m.rb", "module M; end"],
       ["m/n/c.rb", "class M::N::C; end"]
     ]
     with_setup(files) do
+      M = loader::M
       str = Marshal.dump(M::N::C.new)
       loader.reload
       assert_instance_of M::N::C, Marshal.load(str)
@@ -40,13 +43,18 @@ class TestMarshal < LoaderTest
   end
 
   test "Marshal.load autoloads several classes" do
-    skip "marshal does not work with anonymous modules"
+    on_teardown do
+      remove_const :C, from: self.class
+      remove_const :D, from: self.class
+    end
 
     files = [
       ["c.rb", "class C; end"],
       ["d.rb", "class D; end"]
     ]
     with_setup(files) do
+      C = loader::C
+      D = loader::D
       str = Marshal.dump([C.new, D.new])
       loader.reload
       loaded = Marshal.load(str)
