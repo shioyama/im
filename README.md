@@ -1,7 +1,9 @@
 # Im
 
+[![Gem Version](https://badge.fury.io/rb/im.svg)][gem]
 [![Build Status](https://github.com/shioyama/im/actions/workflows/ci.yml/badge.svg)][actions]
 
+[gem]: https://rubygems.org/gems/im
 [actions]: https://github.com/shioyama/im/actions
 
 <!-- TOC -->
