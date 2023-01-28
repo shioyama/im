@@ -16,6 +16,12 @@ module Im
 
   extend Im::ConstPath
 
+  # @sig (String) -> Im::Loader?
+  def import(path)
+    _, feature_path = $:.resolve_feature_path(path)
+    Registry.loader_for(feature_path) if feature_path
+  end
+
   # This is a dangerous method.
   #
   # @experimental
@@ -26,4 +32,6 @@ module Im
   ensure
     loader.unregister
   end
+
+  extend self
 end
