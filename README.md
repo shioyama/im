@@ -30,13 +30,12 @@ any way touching the global namespace.
 To do this, Im leverages code autoloading, Zeitwerk conventions around file
 structure and naming, and two features added in Ruby 3.2: `Kernel#load`
 with a module argument[^1] and `Module#const_added`[^2]. Since these Ruby
-features are essential to its design, it cannot be used with earlier versions
+features are essential to its design, Im is not usable with earlier versions
 of Ruby.
 
-Im started its life as a fork of Zeitwerk and has a very similar interface. The
-gem strives to follow the Zeitwerk pattern as much as possible. Im and Zeitwerk
-can be used alongside each other provided there is no overlap between file
-paths managed by each gem.
+Im started its life as a fork of Zeitwerk and has a very similar interface. Im
+and Zeitwerk can be used alongside each other provided there is no overlap
+between file paths managed by each gem.
 
 Im is in active development and should be considered experimental until the
 eventual release of version 1.0. Versions 0.1.6 and earlier of the gem were
@@ -45,12 +44,12 @@ part of a different experiment and are unrelated to the current gem.
 <a id="markdown-synopsis" name="synopsis"></a>
 ## Synopsis
 
-Im follows an interface that is in most respects identical to Zeitwerk.
-The central difference is that whereas Zeitwerk loads constants into the global
+Im's public interface is in most respects identical to that of Zeitwerk. The
+central difference is that whereas Zeitwerk loads constants into the global
 namespace (rooted in `Object`), Im loads them into anonymous namespaces rooted
-on the loader itself. Loaders in Im are a subclass of the `Module` class, and
-thus each one can define its own namespace. Since there can be arbitrarily many
-loaders, there can also be arbitrarily many autoloaded namespaces.
+on the loader itself. `Im::Loader` is a subclass of `Module`, and thus each
+loader instance can define its own namespace. Since there can be arbitrarily
+many loaders, there can also be arbitrarily many autoloaded namespaces.
 
 Im's gem interface looks like this:
 
@@ -68,7 +67,7 @@ end
 loader.eager_load # optionally
 ```
 
-The generic interface is likewise identical to Zeitwerk's:
+The generic interface is identical to Zeitwerk's:
 
 ```ruby
 loader = Zeitwerk::Loader.new
@@ -86,7 +85,7 @@ Object.const_defined?(:MyGem)
 ```
 
 In order to prevent leakage, the gem's entrypoint, in this case
-`lib/my_gem.rb`), must not define anything at toplevel, hence the use of
+`lib/my_gem.rb`, must not define anything at toplevel, hence the use of
 `module loader::MyGem`.
 
 Once the entrypoint has been required, all constants defined within the gem's
@@ -109,7 +108,7 @@ foo = loader::MyGem::Foo
 # loads `Foo` from lib/my_gem/foo.rb
 
 foo.new.hello_world
-# "Hello World!"
+#=> "Hello World!"
 ```
 
 Constants under the loader can be given permanent names that are different from
@@ -118,13 +117,12 @@ the one defined in the gem itself:
 ```ruby
 Bar = loader::MyGem::Foo
 Bar.new.hello_world
-# "Hello World!"
+#=> "Hello World!"
 ```
 
-The loader variable can go out of scope. Like Zeitwerk, Im keeps a registry
-with all of them, and so the object won't be garbage collected. For
-convenience, Im also provides a method, `Im#import`, to fetch a loader for
-a given file path:
+Like Zeitwerk, Im keeps a registry of all loaders, so the loader objects won't
+be garbage collected. For convenience, Im also provides a method, `Im#import`,
+to fetch a loader for a given file path:
 
 ```ruby
 require "im"
@@ -132,7 +130,7 @@ require "my_gem"
 
 extend Im
 my_gem = import "my_gem"
-#=> loader::MyGem is autoloadable
+#=> my_gem::MyGem is autoloadable
 ```
 
 Reloading works like Zeitwerk:
@@ -208,15 +206,15 @@ anywhere in the global namespace.
 ### Relative and absolute cpaths
 
 Im uses two types of constant paths: relative and absolute, wherever possible
-defaulting to relative ones. A relative cpath is a constant name relative to
+defaulting to relative ones. A _relative cpath_ is a constant name relative to
 the loader in which it was originally defined, regardless of any other names it
-was assigned. Whereas Zeitwerk uses absolute cpaths, Im uses relative cpaths for
-all external loader APIs (see usage for examples).
+was later assigned. Whereas Zeitwerk uses absolute cpaths, Im uses relative
+cpaths for all external loader APIs (see usage for examples).
 
 To understand these concepts, it is important first to distinguish between two
 types of names in Ruby: _temporary names_ and _permanent names_.
 
-A temporary name is a constant name on an anonymous-rooted namespace, for
+A _temporary name_ is a constant name on an anonymous-rooted namespace, for
 example a loader:
 
 ```ruby
@@ -227,7 +225,7 @@ my_gem::Foo.name
 ```
 
 Here, the string `"#<Im::Loader ...>::Foo"` is called a temporary name. We can
-give this module a permanent name by assigning it to a toplevel constant:
+give this module a _permanent name_ by assigning it to a toplevel constant:
 
 ```ruby
 Bar = my_gem::Foo
@@ -243,12 +241,12 @@ keys in Im's internal registries to index constants and their autoloads, which
 is critical for successful autoloading.
 
 To get around this issue, Im tracks all module names and uses relative naming
-inside loader code. You can get the name of a module relative to the loader
-that loaded it with `Im::Loader#relative_cpath`:
+inside loader code. Internally, Im has a method, `relative_cpath`, which can
+generate any module name under a module in the loader namespace:
 
 ```ruby
-my_gem.relative_cpath(my_gem::Foo)
-#=> "Foo"
+my_gem.send(:relative_cpath, loader::Foo, :Baz)
+#=> "Foo::Baz"
 ```
 
 Using relative cpaths frees Im from depending on `Module#name` for
