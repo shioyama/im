@@ -46,7 +46,9 @@ module Im
         disable_tracer_if_unneeded
       end
 
-      internal def update_cpaths(prefix, pattern, replacement)
+      # @sig (String, String) -> void
+      internal def update_cpaths(prefix, replacement)
+        pattern = /^#{prefix}/
         mutex.synchronize do
           cpaths.transform_keys! do |key|
             key.start_with?(prefix) ? key.gsub(pattern, replacement) : key
@@ -76,9 +78,9 @@ module Im
         # On the other hand, if we were called, cpaths is not empty. Otherwise
         # the tracer is disabled. So we do need to go ahead with the hash code
         # computation and delete call.
-        module_name, loader = cpaths.delete(real_mod_name(event.self))
+        relative_cpath, loader = cpaths.delete(Im.cpath(event.self))
         if loader
-          loader.on_namespace_loaded(module_name)
+          loader.on_namespace_loaded(relative_cpath)
           disable_tracer_if_unneeded
         end
       end
