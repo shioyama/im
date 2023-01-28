@@ -82,7 +82,7 @@ namespace is not defined at toplevel:
 
 ```ruby
 Object.const_defined?(:MyGem)
-# => false
+#=> false
 ```
 
 In order to prevent leakage, the gem's entrypoint, in this case
@@ -120,9 +120,6 @@ Bar = loader::MyGem::Foo
 Bar.new.hello_world
 # "Hello World!"
 ```
-
-Since Im uses loaders as its namespace roots, it is important that consumers of
-gems have a way to fetch the loader for a given file path.
 
 The loader variable can go out of scope. Like Zeitwerk, Im keeps a registry
 with all of them, and so the object won't be garbage collected. For
