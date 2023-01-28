@@ -10,18 +10,18 @@ module Im::Loader::Callbacks
   def on_file_autoloaded(file)
     cref = autoloads.delete(file)
 
-    module_name = get_module_name(*cref)
-    to_unload[module_name] = [file, cref] if reloading_enabled?
+    relative_cpath = relative_cpath(*cref)
+    to_unload[relative_cpath] = [file, cref] if reloading_enabled?
     Im::Registry.unregister_autoload(file)
 
     if cdef?(*cref)
       obj = cget(*cref)
       if obj.is_a?(Module)
-        register_module_name(obj, module_name)
-        Im::Registry.register_autoloaded_module(obj, module_name, self)
+        register_module_name(obj, relative_cpath)
+        Im::Registry.register_autoloaded_module(obj, relative_cpath, self)
       end
-      log("constant #{module_name} loaded from file #{file}") if logger
-      run_on_load_callbacks(module_name, obj, file) unless on_load_callbacks.empty?
+      log("constant #{relative_cpath} loaded from file #{file}") if logger
+      run_on_load_callbacks(relative_cpath, obj, file) unless on_load_callbacks.empty?
     else
       raise Im::NameError.new("expected file #{file} to define constant #{cpath(*cref)}, but didn't", cref.last)
     end
@@ -47,12 +47,12 @@ module Im::Loader::Callbacks
     mutex2.synchronize do
       if cref = autoloads.delete(dir)
         autovivified_module = cref[0].const_set(cref[1], Module.new)
-        module_name = get_module_name(*cref)
-        register_module_name(autovivified_module, module_name)
-        Im::Registry.register_autoloaded_module(autovivified_module, module_name, self)
-        log("module #{module_name} autovivified from directory #{dir}") if logger
+        relative_cpath = relative_cpath(*cref)
+        register_module_name(autovivified_module, relative_cpath)
+        Im::Registry.register_autoloaded_module(autovivified_module, relative_cpath, self)
+        log("module #{relative_cpath} autovivified from directory #{dir}") if logger
 
-        to_unload[module_name] = [dir, cref] if reloading_enabled?
+        to_unload[relative_cpath] = [dir, cref] if reloading_enabled?
 
         # We don't unregister `dir` in the registry because concurrent threads
         # wouldn't find a loader associated to it in Kernel#require and would
@@ -60,9 +60,9 @@ module Im::Loader::Callbacks
         # these to be able to unregister later if eager loading.
         autoloaded_dirs << dir
 
-        on_namespace_loaded(module_name)
+        on_namespace_loaded(relative_cpath)
 
-        run_on_load_callbacks(module_name, autovivified_module, dir) unless on_load_callbacks.empty?
+        run_on_load_callbacks(relative_cpath, autovivified_module, dir) unless on_load_callbacks.empty?
       end
     end
   end

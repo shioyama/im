@@ -99,7 +99,7 @@ module Im
 
     # @private
     # @sig Hash[Integer, String]
-    attr_reader :module_names
+    attr_reader :module_cpaths
 
     # @private
     # @sig String
@@ -122,7 +122,7 @@ module Im
       @to_unload       = {}
       @namespace_dirs  = Hash.new { |h, cpath| h[cpath] = [] }
       @shadowed_files  = Set.new
-      @module_names    = {}
+      @module_cpaths   = {}
       @mutex           = Mutex.new
       @mutex2          = Mutex.new
       @setup           = false
@@ -223,7 +223,7 @@ module Im
         to_unload.clear
         namespace_dirs.clear
         shadowed_files.clear
-        module_names.clear
+        module_cpaths.clear
 
         Registry.on_unload(self)
         ExplicitNamespace.__unregister_loader(self)
@@ -390,17 +390,17 @@ module Im
     # @sig (Module, Symbol, String) -> void
     def autoload_subdir(parent, cname, subdir)
       if autoload_path = autoload_path_set_by_me_for?(parent, cname)
-        cpath = cpath(parent, cname)
-        register_explicit_namespace(cpath, get_module_name(parent, cname)) if ruby?(autoload_path)
+        absolute_cpath = cpath(parent, cname)
+        relative_cpath = relative_cpath(parent, cname)
+        register_explicit_namespace(cpath, relative_cpath) if ruby?(autoload_path)
 
         # We do not need to issue another autoload, the existing one is enough
         # no matter if it is for a file or a directory. Just remember the
         # subdirectory has to be visited if the namespace is used.
-        mod_name = get_module_name(parent, cname)
-        namespace_dirs[mod_name] << subdir
+        namespace_dirs[relative_cpath] << subdir
       elsif !cdef?(parent, cname)
         # First time we find this namespace, set an autoload for it.
-        namespace_dirs[get_module_name(parent, cname)] << subdir
+        namespace_dirs[relative_cpath(parent, cname)] << subdir
         set_autoload(parent, cname, subdir)
       else
         # For whatever reason the constant that corresponds to this namespace has
@@ -445,7 +445,7 @@ module Im
       log("earlier autoload for #{cpath(parent, cname)} discarded, it is actually an explicit namespace defined in #{file}") if logger
 
       set_autoload(parent, cname, file)
-      register_explicit_namespace(cpath(parent, cname), get_module_name(parent, cname))
+      register_explicit_namespace(cpath(parent, cname), relative_cpath(parent, cname))
     end
 
     # @sig (Module, Symbol, String) -> void
@@ -508,14 +508,15 @@ module Im
       end
     end
 
-    def get_module_name(parent, cname)
+    # @sig (Module, Symbol) -> String
+    def relative_cpath(parent, cname)
       if self == parent
         cname.to_s
-      elsif module_names.key?(parent.object_id)
-        "#{module_names[parent.object_id]}::#{cname}"
+      elsif module_cpaths.key?(parent.object_id)
+        "#{module_cpaths[parent.object_id]}::#{cname}"
       else
         # If an autoloaded file loads an autoloaded constant from another file, we need to deduce the module name
-        # before we can add the parent to module_names. In this case, we have no choice but to work from to_s.
+        # before we can add the parent to module_cpaths. In this case, we have no choice but to work from to_s.
         mod_name = UNBOUND_METHOD_MODULE_TO_S.bind_call(parent)
         current_module_prefix = "#{real_mod_name(self)}::"
         raise InvalidModuleName, "invalid module name for #{parent}" unless mod_name.start_with?(current_module_prefix)
@@ -523,8 +524,9 @@ module Im
       end
     end
 
+    # @sig (Module, String)
     def register_module_name(mod, module_name)
-      module_names[mod.object_id] = module_name
+      module_cpaths[mod.object_id] = module_name
     end
 
     # @sig (String, Object, String) -> void
