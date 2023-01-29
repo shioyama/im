@@ -388,9 +388,8 @@ module Im
     # @sig (Module, Symbol, String) -> void
     def autoload_subdir(parent, cname, subdir)
       if autoload_path = autoload_path_set_by_me_for?(parent, cname)
-        absolute_cpath = cpath(parent, cname)
         relative_cpath = relative_cpath(parent, cname)
-        register_explicit_namespace(absolute_cpath, relative_cpath) if ruby?(autoload_path)
+        register_explicit_namespace(cpath(parent, cname), relative_cpath) if ruby?(autoload_path)
 
         # We do not need to issue another autoload, the existing one is enough
         # no matter if it is for a file or a directory. Just remember the

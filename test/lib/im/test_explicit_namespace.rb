@@ -3,10 +3,22 @@
 require "test_helper"
 
 class TestExplicitNamespace < LoaderTest
-  test "explicit namespaces are loaded correctly" do
+  test "explicit namespaces are loaded correctly (directory first)" do
     files = [
       ["hotel.rb", "class Hotel; X = 1; end"],
       ["hotel/pricing.rb", "class Hotel::Pricing; end"]
+    ]
+    with_setup(files) do
+      assert_kind_of Class, loader::Hotel
+      assert loader::Hotel::X
+      assert loader::Hotel::Pricing
+    end
+  end
+
+  test "explicit namespaces are loaded correctly (file first)" do
+    files = [
+      ["rd1/hotel.rb", "class Hotel; X = 1; end"],
+      ["rd2/hotel/pricing.rb", "class Hotel::Pricing; end"]
     ]
     with_setup(files) do
       assert_kind_of Class, loader::Hotel
