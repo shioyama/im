@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 module Im::ModuleConstAdded
-  UNBOUND_METHOD_MODULE_NAME = Module.instance_method(:name)
-  private_constant :UNBOUND_METHOD_MODULE_NAME
-
   # We patch Module#const_added to track every time a constant is added to a
   # permanently-named module pointing to an Im-autoloaded constant. This is
   # important because the moment that an Im-autoloaded constant is attached to
