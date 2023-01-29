@@ -559,7 +559,11 @@ module Im
     #
     # @sig (Module, Symbol) -> void
     def reset_inbound_references(parent, cname)
-      return unless (mod = parent.const_get(cname)).is_a?(Module)
+      # If the constant has not yet been loaded, there will be no inbound
+      # references to it and we do nto need to reset them.
+      return if parent.autoload?(cname)
+
+      return unless (mod = cget(parent, cname)).is_a?(Module)
 
       mod_name, loader, references = Im::Registry.autoloaded_modules[get_object_id(mod)]
       return unless mod_name
