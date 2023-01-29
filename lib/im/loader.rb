@@ -4,7 +4,6 @@ require "set"
 
 module Im
   class Loader < Module
-    UNBOUND_METHOD_MODULE_TO_S = Module.instance_method(:to_s)
     UNBOUND_METHOD_REMOVE_CONST = Module.instance_method(:remove_const)
 
     require_relative "loader/helpers"
@@ -115,7 +114,7 @@ module Im
     def initialize
       super
 
-      @module_prefix   = "#{UNBOUND_METHOD_MODULE_TO_S.bind_call(self)}::"
+      @module_prefix   = "#{Im.cpath(self)}::"
       @autoloads       = {}
       @autoloaded_dirs = []
       @to_unload       = {}
