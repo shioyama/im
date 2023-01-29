@@ -59,7 +59,7 @@ class TestOnLoad < LoaderTest
     with_setup([["x.rb", "X = 1"]]) do
       args = []; loader.on_load("X") { |*a| args = a }
 
-      loader::X
+      assert loader::X
       assert_equal 1, args[0]
       assert_abspath "x.rb", args[1]
     end
