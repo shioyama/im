@@ -556,6 +556,8 @@ module Im
     # When a named constant that points to an Im-autoloaded module is removed,
     # any inbound (named) references to the module must be removed and replaced
     # by autoloads with an on_load callback to reset the alias.
+    #
+    # @sig (Module, Symbol) -> void
     def reset_inbound_references(parent, cname)
       return unless (mod = parent.const_get(cname)).is_a?(Module)
 
@@ -573,6 +575,7 @@ module Im
     rescue ::NameError
     end
 
+    # @sig (Module, Symbol, String) -> void
     def reset_inbound_reference(parent, cname, mod_name)
       UNBOUND_METHOD_MODULE_REMOVE_CONST.bind_call(parent, cname)
       abspath, _ = to_unload[mod_name]
