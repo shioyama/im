@@ -122,8 +122,20 @@ class TestExplicitNamespace < LoaderTest
     end
   end
 
-  test "autovivification does not enable the tracer" do
+  test "autovivification does not enable the tracer, one directory" do
     files = [["foo/bar.rb", "module Foo::Bar; end"]]
+    with_setup(files) do
+      assert !tracer.enabled?
+      assert loader::Foo::Bar
+      assert !tracer.enabled?
+    end
+  end
+
+  test "autovivification does not enable the tracer, two directories" do
+    files = [
+      ["rd1/foo/bar.rb", "module Foo::Bar; end"],
+      ["rd2/foo/baz.rb", "module Foo::Baz; end"],
+    ]
     with_setup(files) do
       assert !tracer.enabled?
       assert loader::Foo::Bar
