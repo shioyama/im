@@ -138,8 +138,10 @@ module Im
         end
       end
 
-      def register_autoloaded_module(mod, module_name, loader)
-        autoloaded_modules[mod.object_id] = [module_name, loader, []]
+      # @private
+      # @sig (Integer, String, Im::Loader) -> void
+      def register_autoloaded_module(object_id, module_name, loader)
+        autoloaded_modules[object_id] = [module_name, loader, []]
       end
 
       # @private
