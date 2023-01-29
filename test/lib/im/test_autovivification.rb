@@ -35,7 +35,7 @@ class TestAutovivification < LoaderTest
       ["rd2/admin/y.rb", "Admin::Y = true"]
     ]
     with_setup(files) do
-      assert Im::ExplicitNamespace.send(:cpaths).empty?
+      assert !Im::ExplicitNamespace.__registered?("Admin")
     end
   end
 

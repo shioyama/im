@@ -46,6 +46,13 @@ module Im
         disable_tracer_if_unneeded
       end
 
+      # This is an internal method only used by the test suite.
+      #
+      # @sig (String) -> bool
+      internal def registered?(cpath)
+        cpaths.key?(cpath)
+      end
+
       # @sig (String, String) -> void
       internal def update_cpaths(prefix, replacement)
         pattern = /^#{prefix}/
