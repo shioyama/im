@@ -17,9 +17,9 @@ module Im::ModuleConstAdded
     return unless cpath = Im.permanent_cpath(self)
 
     # We know this is not an autoloaded constant, so it is safe to fetch the
-    # value. We fetch the value, get it's object_id, and check the registry to
-    # see if it is an Im-autoloaded module.
-    relative_cpath, loader, references = Im::Registry.autoloaded_modules[const_get(const_name).object_id]
+    # value. We fetch the value, get it's hash, and check the registry to see
+    # if it is an Im-autoloaded module.
+    relative_cpath, loader, references = Im::Registry.autoloaded_modules[const_get(const_name).hash]
     return super unless loader
 
     # Update the context for this const add. This is important for reloading so

@@ -40,8 +40,8 @@ class TestReloading < LoaderTest
       assert_equal 1, loader::Y::A
       assert_equal 1, loader::Z::A
 
-      y_object_id = loader::Y.object_id
-      z_object_id = loader::Z.object_id
+      y_hash = loader::Y.hash
+      z_hash = loader::Z.hash
 
       File.write("x.rb", "X = 2")
       File.write("y/a.rb", "Y::A = 2")
@@ -53,8 +53,8 @@ class TestReloading < LoaderTest
       assert_equal 2, loader::Y::A
       assert_equal 2, loader::Z::A
 
-      assert loader::Y.object_id != y_object_id
-      assert loader::Z.object_id != z_object_id
+      assert loader::Y.hash != y_hash
+      assert loader::Z.hash != z_hash
 
       assert_equal 2, loader::X
     end

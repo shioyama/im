@@ -5,8 +5,8 @@ require "set"
 module Im
   class Loader < Module
     UNBOUND_METHOD_MODULE_REMOVE_CONST = Module.instance_method(:remove_const)
-    UNBOUND_METHOD_OBJECT_OBJECT_ID = Object.instance_method(:object_id)
-    private_constant :UNBOUND_METHOD_MODULE_REMOVE_CONST, :UNBOUND_METHOD_OBJECT_OBJECT_ID
+    UNBOUND_METHOD_KERNEL_HASH = Kernel.instance_method(:hash)
+    private_constant :UNBOUND_METHOD_MODULE_REMOVE_CONST, :UNBOUND_METHOD_KERNEL_HASH
 
     require_relative "loader/helpers"
     require_relative "loader/callbacks"
@@ -129,7 +129,7 @@ module Im
       @eager_loaded    = false
 
       Registry.register_loader(self)
-      Registry.register_autoloaded_module(get_object_id(self), nil, self)
+      Registry.register_autoloaded_module(get_object_hash(self), nil, self)
     end
 
     # Sets autoloads in the root namespaces.
@@ -511,8 +511,8 @@ module Im
     def relative_cpath(parent, cname)
       if self == parent
         cname.to_s
-      elsif module_cpaths.key?(get_object_id(parent))
-        "#{module_cpaths[get_object_id(parent)]}::#{cname}"
+      elsif module_cpaths.key?(get_object_hash(parent))
+        "#{module_cpaths[get_object_hash(parent)]}::#{cname}"
       else
         # If an autoloaded file loads an autoloaded constant from another file, we need to deduce the module name
         # before we can add the parent to module_cpaths. In this case, we have no choice but to work from to_s.
@@ -525,7 +525,7 @@ module Im
 
     # @sig (Module, String)
     def register_module_name(mod, module_name)
-      module_cpaths[get_object_id(mod)] = module_name
+      module_cpaths[get_object_hash(mod)] = module_name
     end
 
     # @sig (String, Object, String) -> void
@@ -565,7 +565,7 @@ module Im
 
       return unless (mod = cget(parent, cname)).is_a?(Module)
 
-      mod_name, loader, references = Im::Registry.autoloaded_modules[get_object_id(mod)]
+      mod_name, loader, references = Im::Registry.autoloaded_modules[get_object_hash(mod)]
       return unless mod_name
 
       begin
@@ -574,7 +574,7 @@ module Im
           log("inbound reference from #{cpath(*reference)} to #{loader}::#{mod_name} replaced by autoload") if logger
         end
       ensure
-        Im::Registry.autoloaded_modules.delete(get_object_id(mod))
+        Im::Registry.autoloaded_modules.delete(get_object_hash(mod))
       end
     rescue ::NameError
     end
@@ -591,8 +591,8 @@ module Im
     end
 
     # @sig (Object) -> Integer
-    def get_object_id(obj)
-      UNBOUND_METHOD_OBJECT_OBJECT_ID.bind_call(obj)
+    def get_object_hash(obj)
+      UNBOUND_METHOD_KERNEL_HASH.bind_call(obj)
     end
   end
 end

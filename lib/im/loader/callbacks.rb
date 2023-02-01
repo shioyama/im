@@ -16,7 +16,7 @@ module Im::Loader::Callbacks
       obj = cget(*cref)
       if obj.is_a?(Module)
         register_module_name(obj, relative_cpath)
-        Im::Registry.register_autoloaded_module(get_object_id(obj), relative_cpath, self)
+        Im::Registry.register_autoloaded_module(get_object_hash(obj), relative_cpath, self)
       end
       log("constant #{relative_cpath} loaded from file #{file}") if logger
       run_on_load_callbacks(relative_cpath, obj, file) unless on_load_callbacks.empty?
@@ -47,7 +47,7 @@ module Im::Loader::Callbacks
         autovivified_module = cref[0].const_set(cref[1], Module.new)
         relative_cpath = relative_cpath(*cref)
         register_module_name(autovivified_module, relative_cpath)
-        Im::Registry.register_autoloaded_module(autovivified_module.object_id, relative_cpath, self)
+        Im::Registry.register_autoloaded_module(autovivified_module.hash, relative_cpath, self)
         log("module #{relative_cpath} autovivified from directory #{dir}") if logger
 
         to_unload[relative_cpath] = [dir, cref] if reloading_enabled?
