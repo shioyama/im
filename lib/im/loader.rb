@@ -546,7 +546,7 @@ module Im
 
     # @sig (Module, Symbol) -> void
     def unload_autoload(parent, cname)
-      parent.__send__(:remove_const, cname)
+      crem(parent, cname)
       log("autoload for #{cpath(parent, cname)} removed") if logger
     end
 
@@ -554,7 +554,7 @@ module Im
     def unload_cref(parent, cname)
       # Let's optimistically remove_const. The way we use it, this is going to
       # succeed always if all is good.
-      parent.__send__(:remove_const, cname)
+      crem(parent, cname)
     rescue ::NameError
       # There are a few edge scenarios in which this may happen. If the constant
       # is gone, that is OK, anyway.
