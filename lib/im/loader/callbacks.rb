@@ -9,7 +9,6 @@ module Im::Loader::Callbacks
     cref = autoloads.delete(file)
 
     relative_cpath = relative_cpath(*cref)
-    to_unload[relative_cpath] = [file, cref] if reloading_enabled?
     Im::Registry.unregister_autoload(file)
 
     if cdef?(*cref)
@@ -19,10 +18,13 @@ module Im::Loader::Callbacks
         Im::Registry.register_autoloaded_module(get_object_hash(obj), relative_cpath, self)
       end
       log("constant #{relative_cpath} loaded from file #{file}") if logger
+      to_unload[relative_cpath] = [file, cref] if reloading_enabled?
       run_on_load_callbacks(relative_cpath, obj, file) unless on_load_callbacks.empty?
     else
       msg = "expected file #{file} to define constant #{cpath(*cref)}, but didn't"
       log(msg) if logger
+      crem(*cref)
+      to_unload[relative_cpath] = [file, cref] if reloading_enabled?
       raise Im::NameError.new(msg, cref.last)
     end
   end

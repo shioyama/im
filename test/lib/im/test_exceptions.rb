@@ -23,7 +23,7 @@ class TestExceptions < LoaderTest
   end
 
   test "eager loading raises NameError if files do not define the expected constants" do
-    files = [["x.rb", "Y = 1"]]
+    files = [["x.rb", ""]]
     with_setup(files) do
       x_rb = File.expand_path("x.rb")
       error = assert_raises(Im::NameError) { loader.eager_load }

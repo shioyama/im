@@ -157,8 +157,16 @@ class TestReloading < LoaderTest
     with_setup(files) do
       assert_raises(Im::NameError) { loader::X }
 
+      assert !loader.constants.include?(:X)
+      assert !loader.const_defined?(:X, false)
+      assert !loader.autoload?(:X)
+
       loader.reload
       File.write("x.rb", "X = true")
+
+      assert loader.constants.include?(:X)
+      assert loader.const_defined?(:X, false)
+      assert loader.autoload?(:X)
 
       assert loader::X
     end
@@ -170,8 +178,16 @@ class TestReloading < LoaderTest
       loader.on_unload {}
       assert_raises(Im::NameError) { loader::X }
 
+      assert !loader.constants.include?(:X)
+      assert !loader.const_defined?(:X, false)
+      assert !loader.autoload?(:X)
+
       loader.reload
       File.write("x.rb", "X = true")
+
+      assert loader.constants.include?(:X)
+      assert loader.const_defined?(:X, false)
+      assert loader.autoload?(:X)
 
       assert loader::X
     end
