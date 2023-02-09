@@ -21,7 +21,9 @@ module Im::Loader::Callbacks
       log("constant #{relative_cpath} loaded from file #{file}") if logger
       run_on_load_callbacks(relative_cpath, obj, file) unless on_load_callbacks.empty?
     else
-      raise Im::NameError.new("expected file #{file} to define constant #{cpath(*cref)}, but didn't", cref.last)
+      msg = "expected file #{file} to define constant #{cpath(*cref)}, but didn't"
+      log(msg) if logger
+      raise Im::NameError.new(msg, cref.last)
     end
   end
 
