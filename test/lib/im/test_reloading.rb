@@ -93,7 +93,7 @@ class TestReloading < LoaderTest
       assert_equal 1, loader::Z::A
 
       assert loader.autoloads.empty?
-      assert loader.to_unload.empty?
+      assert loader.__to_unload.empty?
     end
   end
 
@@ -121,7 +121,7 @@ class TestReloading < LoaderTest
 
       assert loader.autoloads.empty?
       assert Im::Registry.autoloads.empty?
-      assert loader.to_unload.empty?
+      assert loader.__to_unload.empty?
     end
   end
 

@@ -13,6 +13,8 @@ module Im
     require_relative "loader/config"
     require_relative "loader/eager_load"
 
+    extend Internal
+
     include Callbacks
     include Helpers
     include Config
@@ -64,9 +66,9 @@ module Im
     # If reloading is enabled, this hash is filled as constants are autoloaded
     # or eager loaded. Otherwise, the collection remains empty.
     #
-    # @private
     # @sig Hash[String, [String, [Module, Symbol]]]
     attr_reader :to_unload
+    internal :to_unload
 
     # Maps namespace constant paths to their respective directories.
     #
