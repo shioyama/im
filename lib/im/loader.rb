@@ -111,9 +111,9 @@ module Im
     attr_reader :mutex
     private :mutex
 
-    # @private
     # @sig Mutex
     attr_reader :mutex2
+    private :mutex2
 
     def initialize
       super
