@@ -40,9 +40,9 @@ module Im
     #   "/Users/fxn/blog/app/models/hotel/pricing.rb" => [Hotel, :Pricing]
     #   ...
     #
-    # @private
     # @sig Hash[String, [Module, Symbol]]
     attr_reader :autoloads
+    internal :autoloads
 
     # We keep track of autoloaded directories to remove them from the registry
     # at the end of eager loading.

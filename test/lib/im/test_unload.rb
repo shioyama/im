@@ -57,14 +57,14 @@ class TestUnload < LoaderTest
       assert loader::User
       assert loader::Api::V1::UsersController
 
-      assert !loader.autoloads.empty?
+      assert !loader.__autoloads.empty?
       assert !loader.autoloaded_dirs.empty?
       assert !loader.__to_unload.empty?
       assert !loader.namespace_dirs.empty?
 
       loader.unload
 
-      assert loader.autoloads.empty?
+      assert loader.__autoloads.empty?
       assert loader.autoloaded_dirs.empty?
       assert loader.__to_unload.empty?
       assert loader.namespace_dirs.empty?

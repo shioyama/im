@@ -86,13 +86,13 @@ class TestReloading < LoaderTest
     with_files(files) do
       loader = new_loader(dirs: ".", enable_reloading: false)
 
-      assert !loader.autoloads.empty?
+      assert !loader.__autoloads.empty?
 
       assert_equal 1, loader::X
       assert_equal 1, loader::Y::A
       assert_equal 1, loader::Z::A
 
-      assert loader.autoloads.empty?
+      assert loader.__autoloads.empty?
       assert loader.__to_unload.empty?
     end
   end
@@ -114,12 +114,12 @@ class TestReloading < LoaderTest
     with_files(files) do
       loader = new_loader(dirs: ".", enable_reloading: false)
 
-      assert !loader.autoloads.empty?
+      assert !loader.__autoloads.empty?
       assert !Im::Registry.autoloads.empty?
 
       loader.eager_load
 
-      assert loader.autoloads.empty?
+      assert loader.__autoloads.empty?
       assert Im::Registry.autoloads.empty?
       assert loader.__to_unload.empty?
     end
