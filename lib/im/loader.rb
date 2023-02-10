@@ -107,9 +107,9 @@ module Im
     # @sig String
     attr_reader :module_prefix
 
-    # @private
     # @sig Mutex
     attr_reader :mutex
+    private :mutex
 
     # @private
     # @sig Mutex
