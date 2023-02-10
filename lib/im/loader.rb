@@ -281,9 +281,8 @@ module Im
     # The return value of this predicate is only meaningful if the loader has
     # scanned the file. This is the case in the spots where we use it.
     #
-    # @private
     # @sig (String) -> Boolean
-    def shadowed_file?(file)
+    internal def shadowed_file?(file)
       shadowed_files.member?(file)
     end
 
