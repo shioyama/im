@@ -95,9 +95,9 @@ module Im
     # has only scanned the top-level, `shadowed_files` does not have shadowed
     # files that may exist deep in the project tree yet.
     #
-    # @private
     # @sig Set[String]
     attr_reader :shadowed_files
+    internal :shadowed_files
 
     # @private
     # @sig Hash[Integer, String]
