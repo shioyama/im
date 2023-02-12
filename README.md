@@ -265,6 +265,11 @@ toplevel-rooted constant a module may have been assigned to.
 
 (TODO)
 
+## Related
+
+- [Demo Rails app](https://github.com/shioyama/rails_on_im) using Im to isolate
+  the application under one namespace
+
 <a id="markdown-license" name="license"></a>
 ## License
 
