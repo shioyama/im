@@ -40,6 +40,7 @@ class TestAutovivification < LoaderTest
   end
 
   test "autovivification is synchronized" do
+    $test_admin_const_set_calls = 0
     $test_admin_const_set_queue = Queue.new
 
     files = [["admin/v2/user.rb", "class Admin::V2::User; end"]]
@@ -48,8 +49,9 @@ class TestAutovivification < LoaderTest
 
       loader_admin = loader::Admin
       def loader_admin.const_set(cname, mod)
+        $test_admin_const_set_calls += 1
         $test_admin_const_set_queue << true
-        sleep 0.5
+        sleep 0.1
         super
       end
 
@@ -65,6 +67,7 @@ class TestAutovivification < LoaderTest
 
       concurrent_autovivifications.each(&:join)
 
+      assert_equal 1, $test_admin_const_set_calls
       assert $test_admin_const_set_queue.empty?
     end
   end

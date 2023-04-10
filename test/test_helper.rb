@@ -7,7 +7,8 @@ require "minitest/proveit"
 require "minitest/reporters"
 Minitest::Reporters.use!(Minitest::Reporters::DefaultReporter.new)
 
-# require_relative "support/no_warnings_policy"
+require "warning"
+
 require_relative "support/test_macro"
 require_relative "support/delete_loaded_feature"
 require_relative "support/loader_test"

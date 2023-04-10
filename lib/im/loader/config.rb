@@ -279,9 +279,9 @@ module Im::Loader::Config
     # Common use case.
     return false if ignored_paths.empty?
 
-    walk_up(abspath) do |abspath|
-      return true  if ignored_path?(abspath)
-      return false if root_dir?(abspath)
+    walk_up(abspath) do |path|
+      return true  if ignored_path?(path)
+      return false if root_dir?(path)
     end
 
     false
@@ -309,9 +309,9 @@ module Im::Loader::Config
     # Optimize this common use case.
     return false if eager_load_exclusions.empty?
 
-    walk_up(abspath) do |abspath|
-      return true  if eager_load_exclusions.member?(abspath)
-      return false if root_dir?(abspath)
+    walk_up(abspath) do |path|
+      return true  if eager_load_exclusions.member?(path)
+      return false if root_dir?(path)
     end
 
     false
