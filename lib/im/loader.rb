@@ -113,7 +113,11 @@ module Im
     # @sig Mutex
     attr_reader :mutex2
 
-    def initialize
+    # @private
+    # @sig Module
+    attr_reader :root
+
+    def initialize(root: self)
       super
 
       @module_prefix   = "#{Im.cpath(self)}::"
@@ -125,11 +129,17 @@ module Im
       @module_cpaths   = {}
       @mutex           = Mutex.new
       @mutex2          = Mutex.new
+      @root            = root
       @setup           = false
       @eager_loaded    = false
 
       Registry.register_loader(self)
       Registry.register_autoloaded_module(get_object_hash(self), nil, self)
+    end
+
+    def root=(root)
+      raise SetupFinished, "cannot set root after setup" if @setup
+      @root = root
     end
 
     # Sets autoloads in the root namespaces.
@@ -351,7 +361,7 @@ module Im
     private # -------------------------------------------------------------------------------------
 
     # @sig (String, Module?) -> void
-    def set_autoloads_in_dir(dir, parent = self)
+    def set_autoloads_in_dir(dir, parent = root)
       ls(dir) do |basename, abspath|
         begin
           if ruby?(basename)
@@ -517,7 +527,7 @@ module Im
 
     # @sig (Module, Symbol) -> String
     def relative_cpath(parent, cname)
-      if self == parent
+      if root == parent
         cname.to_s
       elsif module_cpaths.key?(get_object_hash(parent))
         "#{module_cpaths[get_object_hash(parent)]}::#{cname}"
@@ -525,7 +535,7 @@ module Im
         # If an autoloaded file loads an autoloaded constant from another file, we need to deduce the module name
         # before we can add the parent to module_cpaths. In this case, we have no choice but to work from to_s.
         mod_name = Im.cpath(parent)
-        current_module_prefix = "#{Im.cpath(self)}::"
+        current_module_prefix = "#{Im.cpath(root)}::"
         raise InvalidModuleName, "invalid module name for #{parent}" unless mod_name.start_with?(current_module_prefix)
         "#{mod_name}::#{cname}".delete_prefix!(current_module_prefix)
       end

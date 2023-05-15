@@ -18,7 +18,11 @@ module Kernel
         if loaded = !$LOADED_FEATURES.include?(feature_path)
           $LOADED_FEATURES << feature_path
           begin
-            load path, loader
+            if loader.root == Object
+              load path
+            else
+              load path, loader.root
+            end
           rescue => e
             $LOADED_FEATURES.delete(feature_path)
             raise e

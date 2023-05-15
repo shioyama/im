@@ -81,7 +81,7 @@ module Im::Loader::Config
   attr_reader :on_unload_callbacks
   private :on_unload_callbacks
 
-  def initialize
+  def initialize(root: self)
     @inflector              = Im::Inflector.new
     @logger                 = self.class.default_logger
     @tag                    = SecureRandom.hex(3)
