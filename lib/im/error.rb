@@ -19,6 +19,9 @@ module Im
     end
   end
 
+  class SetupFinished < Error
+  end
+
   class InvalidModuleName < Error
   end
 end

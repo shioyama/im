@@ -9,10 +9,11 @@ class LoaderTest < Minitest::Test
     @loader = new_loader(setup: false)
   end
 
-  def new_loader(dirs: [], enable_reloading: true, setup: true)
+  def new_loader(dirs: [], enable_reloading: true, setup: true, root: nil)
     Im::Loader.new.tap do |loader|
       Array(dirs).each { |dir| loader.push_dir(dir) }
       loader.enable_reloading if enable_reloading
+      loader.root = root      if root
       loader.setup            if setup
     end
   end
