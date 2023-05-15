@@ -11,4 +11,16 @@ class TestDifferentRoot < LoaderTest
       assert mod::Foo
     end
   end
+
+  test "setting Object as root" do
+    on_teardown { remove_const :Foo, from: Object }
+
+    files = [["foo.rb", "module Foo; end"]]
+
+    @loader = new_loader(root: Object, setup: false)
+
+    with_setup(files) do
+      assert ::Foo
+    end
+  end
 end
